@@ -372,6 +372,101 @@ public:
 	//!	@brief		Checks if the window is currently marked as visible.
 	bool IsVisible() const { return m_isVisible; }
 
+public:
+
+	/**
+	 *	@brief		Waits for and processes the next window message.
+	 *	@details	This call will block until a new message is available in the queue for this window.
+	 *				It retrieves the message with `GetMessage`, translates it (e.g. converts virtual-key
+	 *				messages into character messages), and dispatches it to the window procedure.
+	 */
+	void WaitProcessEvent()
+	{
+		if (m_hWnd != nullptr)	
+		{
+			MSG uMsg = {};
+
+			if (::GetMessage(&uMsg, m_hWnd, 0, 0))
+			{
+				::TranslateMessage(&uMsg);
+
+				::DispatchMessage(&uMsg);
+			};
+		}
+	}
+
+
+	/**
+	 *	@brief		Waits for and processes the next message for all windows belonging to the current thread.
+	 *	@details	This function blocks until a message is available in the message queue of the
+	 *				current thread (regardless of which window it belongs to).
+	 *	@note		Unlike per-window message processing, passing `nullptr` as `hWnd` allows
+	 *				messages for any window in this thread to be retrieved.
+	 */
+	static void WaitProcessThreadWindows()
+	{
+		MSG uMsg = {};
+
+		if (::GetMessage(&uMsg, nullptr, 0, 0))
+		{
+			::TranslateMessage(&uMsg);
+
+			::DispatchMessage(&uMsg);
+		};
+	}
+
+
+	/**
+	 *	@brief		Processes a single pending window message, if available.
+	 *	@details	Uses `PeekMessage` to check for a message in the queue for this window.
+	 *				If a message exists, it is translated and dispatched to the window procedure.
+	 *	@return		`true` if a message was processed, `false` if no messages were pending.
+	 */
+	bool ProcessEvent()
+	{
+		if (m_hWnd != nullptr)
+		{
+			MSG uMsg = {};
+
+			if (::PeekMessage(&uMsg, m_hWnd, 0, 0, PM_REMOVE))
+			{
+				::TranslateMessage(&uMsg);
+
+				::DispatchMessage(&uMsg);
+
+				return true;
+			};
+		}
+
+		return false;
+	}
+
+
+	/**
+	 *	@brief		Processes a single pending message for all windows belonging to the current thread, if any.
+	 *	@details	Uses `PeekMessage` with hWnd set to `nullptr` to check for messages in the message queue
+	 *				of the current thread. If a message exists, it is translated and dispatched
+	 *				to the appropriate window procedure.
+	 *	@return		`true` if a message was processed, `false` if no messages were pending.
+	 *	@note		Unlike per-window processing, passing `nullptr` as `hWnd` retrieves messages
+	 *				for any window in this thread.
+	 */
+	static bool ProcessThreadWindows()
+	{
+		MSG uMsg = {};
+
+		if (::PeekMessage(&uMsg, nullptr, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&uMsg);
+
+			::DispatchMessage(&uMsg);
+
+			return true;
+		};
+
+		return false;
+	}
+
 private:
 
 	RECT AdjustWindowRect() const;
@@ -449,7 +544,6 @@ LRESULT easy_win32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	else if (uMsg == WM_NCCALCSIZE)
 	{
 	//	NCCALCSIZE_PARAMS * sizeParams = (NCCALCSIZE_PARAMS*)lParam;
-
 
 	}
 	else if (uMsg == WM_DESTROY)	//	Handle window destruction
@@ -578,9 +672,9 @@ void easy_win32::Window::Open()
 			hbrBackground	= (HBRUSH)::GetStockObject(NULL_BRUSH);
 			lpszMenuName	= NULL;
 		#ifdef UNICODE
-			lpszClassName = L"EasyWin32";
+			lpszClassName	= L"EasyWin32";
 		#else
-			lpszClassName = "EasyWin32";
+			lpszClassName	= "EasyWin32";
 		#endif
 			hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
 			isRegistered	= ::RegisterClassEx(this);
