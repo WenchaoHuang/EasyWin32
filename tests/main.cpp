@@ -30,6 +30,34 @@
 
 int main()
 {
+	EzWindow window;
+	window.SetTitle("EasyWin32");
+	window.SetStyle(EzStyle::Overlapped);
+	window.Open();
+	window.Show();
+
+	//	Setup callbacks
+	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
+	{
+		if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
+		{
+			window.Close();
+		}
+
+		return 0;
+	};
+
+	MSG message = {};
+
+	while (window.IsOpen())
+	{
+		if (::GetMessage(&message, NULL, 0, 0))
+		{
+			::TranslateMessage(&message);
+
+			::DispatchMessage(&message);
+		};
+	}
 
 	return 0;
 }
