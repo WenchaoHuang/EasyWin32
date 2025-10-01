@@ -23,6 +23,8 @@
 #define EZWIN32_IMPLEMENTATION
 
 #include "easy_win32.h"
+#include <chrono>
+#include <thread>
 
 /*********************************************************************************
 ***********************************    main    ***********************************
@@ -47,16 +49,15 @@ int main()
 		return 0;
 	};
 
-	MSG message = {};
-
+	//	Main loop
 	while (window.IsOpen())
 	{
-		if (::GetMessage(&message, NULL, 0, 0))
+		if (!window.ProcessEvent())
 		{
-			::TranslateMessage(&message);
+			using namespace std::chrono_literals;
 
-			::DispatchMessage(&message);
-		};
+			std::this_thread::sleep_for(1ms);
+		}
 	}
 
 	return 0;
