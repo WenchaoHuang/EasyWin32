@@ -45,7 +45,7 @@ namespace easy_win32
 		Overlapped,
 	};
 
-	// Virtual-key codes used by the system.
+	//!	@brief	Virtual-key codes used by the system.
 	enum class Key
 	{
 		A = 'A',
@@ -180,7 +180,7 @@ namespace easy_win32
 	};
 
 
-	// Mouse button tags.
+	//!	@brief	Mouse button tags.
 	enum class MouseButton
 	{
 		Left,
@@ -191,7 +191,7 @@ namespace easy_win32
 	};
 
 
-	// Mouse state bits.
+	//!	@brief	Mouse state bits.
 	enum MouseStateBits
 	{
 		Left		= MK_LBUTTON,
@@ -204,7 +204,7 @@ namespace easy_win32
 	};
 
 
-	// Type of mouse action.
+	//!	@brief	Type of mouse action.
 	enum class MouseAction
 	{
 		Up				= 0,
@@ -213,7 +213,7 @@ namespace easy_win32
 	};
 
 
-	// Type of keyboard action.
+	//!	@brief	Type of keyboard action.
 	enum class KeyAction
 	{
 		Press,
@@ -222,7 +222,7 @@ namespace easy_win32
 	};
 
 
-	//	Predefined cursors of Windows OS.
+	//!	@brief	Predefined cursors of Windows OS.
 	enum class Cursor : uint64_t
 	{
 		None			= (uint64_t)IDC_NO,
@@ -241,6 +241,34 @@ namespace easy_win32
 		AppStarting		= (uint64_t)IDC_APPSTARTING,
 	};
 
+
+	//!	@brief	HitTest result type, returned by WM_NCHITTEST.
+	enum class HitTestResult : LRESULT
+	{
+		Nowhere			= HTNOWHERE,		//!< No part of the window
+		Client			= HTCLIENT,			//!< Client area
+		Caption			= HTCAPTION,		//!< Title bar (caption)
+		SystemMenu		= HTSYSMENU,		//!< System menu (icon)
+		GrowBox			= HTSIZE,			//!< Size box (legacy)
+		Menu			= HTMENU,			//!< Menu area
+		HScroll			= HTHSCROLL,		//!< Horizontal scroll bar
+		VScroll			= HTVSCROLL,		//!< Vertical scroll bar
+		MinButton		= HTMINBUTTON,		//!< Minimize button
+		MaxButton		= HTMAXBUTTON,		//!< Maximize button
+		Left			= HTLEFT,			//!< Left border
+		Right			= HTRIGHT,			//!< Right border
+		Top				= HTTOP,			//!< Top border
+		TopLeft			= HTTOPLEFT,		//!< Top-left corner
+		TopRight		= HTTOPRIGHT,		//!< Top-right corner
+		Bottom			= HTBOTTOM,			//!< Bottom border
+		BottomLeft		= HTBOTTOMLEFT,		//!< Bottom-left corner
+		BottomRight		= HTBOTTOMRIGHT,	//!< Bottom-right corner
+		Border			= HTBORDER,			//!< Non-sizing border
+		CloseButton		= HTCLOSE,			//!< Close button
+		HelpButton		= HTHELP,			//!< Help button
+		Default			= -1,				//!< Use default hit test (DefWindowProc)
+	};
+
 #ifdef UNICODE
 	using string_type = std::wstring;
 #else
@@ -255,6 +283,7 @@ using EzCursor = easy_win32::Cursor;
 using EzKeyAction = easy_win32::KeyAction;
 using EzMouseAction = easy_win32::MouseAction;
 using EzMouseButton = easy_win32::MouseButton;
+using EzHitTestResult = easy_win32::HitTestResult;
 
 /*********************************************************************************
 **********************************    Window    **********************************
@@ -287,15 +316,7 @@ public:
 	/**
 	 *	@brief		
 	 */
-	void Close()
-	{
-		if (m_hWnd != nullptr)
-		{
-			::DestroyWindow(m_hWnd);
-
-			m_hWnd = nullptr;
-		}
-	}
+	void Close() { ::DestroyWindow(m_hWnd);		m_hWnd = nullptr; }
 
 public:
 
@@ -493,6 +514,7 @@ private:
 
 	RECT AdjustWindowRect() const;
 
+	//!	@brief	Static window procedure for message dispatching.
 	static LRESULT Procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 public:
@@ -516,6 +538,7 @@ public:
 	std::function<LRESULT(int dx, int dy, MouseStateBits)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
 	std::function<LRESULT(MouseButton, MouseAction, MouseStateBits)>	onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
 	std::function<LRESULT(Key, KeyAction)>								onKeyboardPress;	// Called when a key is pressed, released, or repeated (WM_KEYDOWN/WM_KEYUP).
+	std::function<HitTestResult(int x, int y)>							onHitTest;			// Called when WM_NCHITTEST is received, should return the hit-test result based on cursor position.
 
 private:
 
@@ -650,6 +673,21 @@ LRESULT easy_win32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					else if (button == XBUTTON2)
 					{
 						result = window->onMouseClick(MouseButton::XButton2, action, static_cast<MouseStateBits>(wParam & 127));
+					}
+				}
+
+				break;
+			}
+
+			case WM_NCHITTEST:
+			{
+				if (window->onHitTest)
+				{
+					auto hitResult = window->onHitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+
+					if (hitResult != HitTestResult::Default)
+					{
+						return static_cast<LRESULT>(hitResult);
 					}
 				}
 
