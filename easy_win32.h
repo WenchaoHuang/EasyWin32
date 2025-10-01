@@ -297,11 +297,70 @@ public:
 		}
 	}
 
+public:
 
-	/**
-	 *	@brief		Whether the specified window handle identifies an existing window (opened).
-	 */
+	//!	@brief	Returns the native handle of the win32 window.
+	HWND NativeHandle() { return m_hWnd; }
+
+	//!	@brief	Whether the specified window handle identifies an existing window (opened).	
 	bool IsOpen() const { return ::IsWindow(m_hWnd); }
+
+	//!	@brief	Whether the window is minimized.
+	bool IsMinimized() const { return ::IsIconic(m_hWnd); }
+
+	//!	@brief	Whether the window is maximized.
+	bool IsMaximized() const { return ::IsZoomed(m_hWnd); }
+
+	//!	@brief	Whether the windows is focused.
+	bool IsFocused() const { return ::GetFocus() == m_hWnd; }
+
+	//!	@brief	Checks if the window is currently marked as visible.
+	bool IsVisible() const { return ::IsWindowVisible(m_hWnd) != FALSE; }
+
+	//!	@brief	Whether the windows is the foreground (active) window.
+	bool IsForeground() const { return ::GetForegroundWindow() == m_hWnd; }
+
+public:
+
+	//!	@brief	Bring the window to front and set input focus.
+	void SetFocus() { ::SetFocus(m_hWnd); }
+
+	//!	@brief	Hide the window.
+	void Hide() { ::ShowWindow(m_hWnd, SW_HIDE); }
+
+	//!	@brief	Bring the window to the top of the Z order.
+	void BringToTop() { ::BringWindowToTop(m_hWnd); }
+
+	//!	@brief	Show the window.
+	void Show() { ::ShowWindow(m_hWnd, SW_SHOWNORMAL); }
+
+	//!	@brief	Displays or hides the cursor.
+	void ShowCursor(bool bShow) { ::ShowCursor(bShow); }
+
+	//!	@brief	Foreground the window.
+	void SetForeground() { ::SetForegroundWindow(m_hWnd); }
+
+	//!	@brief	Maximized the window.
+	void Maximize() { ::ShowWindow(m_hWnd, SW_SHOWMAXIMIZED); }
+
+	//!	@brief	Minimized the window.
+	void Minimize() { ::ShowWindow(m_hWnd, SW_SHOWMINIMIZED); }
+
+	//!	@brief	Enables or disables mouse and keyboard input to the specified window.
+	void EnableInput(bool bEnable) { ::EnableWindow(m_hWnd, bEnable); }
+
+	//!	@brief	Creates a timer with the specified time-out value.
+	void SetTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
+
+	//!	@brief	Specify the cursor shape, must be called from the main thread.
+	void SetCursor(Cursor cursor)
+	{
+	#ifdef UNICODE
+		::SetCursor(::LoadCursor(NULL, (LPCWSTR)cursor));
+	#else
+		::SetCursor(::LoadCursor(NULL, (LPCSTR)cursor));
+	#endif
+	}
 
 public:
 
@@ -317,7 +376,7 @@ public:
 	{
 		if (m_title != title)
 		{
-			::SetWindowText(m_hWnd, m_title.c_str());
+			::SetWindowText(m_hWnd, title.c_str());
 
 			m_title = title;
 		}
@@ -334,43 +393,6 @@ public:
 	void SetStyle(Style style);
 
 	void SetPos(int left, int top, int right, int bottom);
-
-public:
-
-	/**
-	 *	@brief		Shows the window.
-	 *	@details	If the window is not currently marked as visible, updates the internal
-	 *				visibility flag and calls `ShowWindow()` with `SW_SHOWNORMAL` to display it.
-	 */
-	void Show()
-	{
-		if (m_isVisible != true)
-		{
-			::ShowWindow(m_hWnd, SW_SHOWNORMAL);
-
-			m_isVisible = true;
-		}
-	}
-
-
-	/**
-	 *	@brief		Hides the window.
-	 *	@details	If the window is currently marked as visible, updates the internal
-	 *				visibility flag and calls ShowWindow() with SW_HIDE to hide it.
-	 */
-	void Hide()
-	{
-		if (m_isVisible != false)
-		{
-			::ShowWindow(m_hWnd, SW_HIDE);
-
-			m_isVisible = false;
-		}
-	}
-
-
-	//!	@brief		Checks if the window is currently marked as visible.
-	bool IsVisible() const { return m_isVisible; }
 
 public:
 
@@ -498,7 +520,6 @@ public:
 private:
 
 	HWND				m_hWnd = nullptr;
-	bool				m_isVisible = false;
 	Style				m_style = Style::Overlapped;
 	RECT				m_bounds = { 100, 100, 800, 600 };
 #ifdef UNICODE
@@ -515,6 +536,8 @@ private:
 #ifdef EZWIN32_IMPLEMENTATION
 
 #include <windowsx.h>
+#undef IsMinimized
+#undef IsMaximized
 
 /**
  *	@brief		Static window procedure for message dispatching.
@@ -700,11 +723,6 @@ void easy_win32::Window::Open()
 		m_hWnd = ::CreateWindowEx(WS_EX_APPWINDOW, s_win32Class.lpszClassName, m_title.c_str(), dwStyle,
 								  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
 								  this /* Additional application data */);
-
-		if (m_isVisible)
-		{
-			::ShowWindow(m_hWnd, SW_SHOWNORMAL);
-		}
 	}
 }
 
