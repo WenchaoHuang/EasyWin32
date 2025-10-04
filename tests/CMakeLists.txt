@@ -24,18 +24,17 @@ cmake_minimum_required(VERSION 3.10)
 set(TARGET_NAME EasyWin32-Tests)
 
 # Source files
-file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
-    "${PROJECT_SOURCE_DIR}/easy_win32.h"
+file(GLOB EZWIN32_TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
 # Create the static library
-add_executable(${TARGET_NAME} ${TEST_SOURCES})
+add_executable(${TARGET_NAME} ${EZWIN32_TEST_SOURCES})
 
-# Include directories
-target_include_directories(${TARGET_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
+# Link libraries
+target_link_libraries(${TARGET_NAME} PRIVATE EasyWin32)
 
 # MSVC settings
 if(MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX>)
+    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W3 /WX>)
 endif()

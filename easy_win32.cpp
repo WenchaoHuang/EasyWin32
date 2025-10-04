@@ -20,43 +20,6 @@
  *	SOFTWARE.
  */
 
-#include <chrono>
-#include <thread>
-#include <easy_win32.h>
+#define EZWIN32_IMPLEMENTATION
 
-/*********************************************************************************
-***********************************    main    ***********************************
-*********************************************************************************/
-
-int main()
-{
-	EzWindow window;
-	window.SetTitle("EasyWin32");
-	window.SetStyle(EzStyle::Overlapped);
-	window.Open();
-	window.Show();
-
-	//	Setup callbacks
-	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
-	{
-		if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
-		{
-			window.Close();
-		}
-
-		return 0;
-	};
-
-	//	Main loop
-	while (window.IsOpen())
-	{
-		if (!window.ProcessEvent())
-		{
-			using namespace std::chrono_literals;
-
-			std::this_thread::sleep_for(1ms);
-		}
-	}
-
-	return 0;
-}
+#include "easy_win32.h"

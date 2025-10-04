@@ -29,7 +29,33 @@ project(${TARGET_NAME} LANGUAGES CXX)
 # Organize targets into folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Library options
+option(EZWIN32_BUILD_TESTS "Build tests for ${TARGET_NAME} library" OFF)
+option(EZWIN32_BUILD_EXAMPLES "Build examples for ${TARGET_NAME} library" OFF)
 
-# Add tests and examples
-add_subdirectory(tests)
-#add_subdirectory(examples)
+# Source files
+file(GLOB EZWIN32_SOURCES CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/easy_win32.cpp"
+    "${PROJECT_SOURCE_DIR}/easy_win32.h"
+)
+
+# Create the static library
+add_library(${TARGET_NAME} STATIC ${EZWIN32_SOURCES})
+
+# Include directories
+target_include_directories(${TARGET_NAME} INTERFACE ${PROJECT_SOURCE_DIR})
+
+# MSVC settings
+if(MSVC)
+    target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/MP /W4 /WX>)
+endif()
+
+# Optional: Add tests if enabled
+if(EZWIN32_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
+# Optional: Add examples if enabled
+if(EZWIN32_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
