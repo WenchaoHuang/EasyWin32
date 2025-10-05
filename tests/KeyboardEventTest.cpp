@@ -20,49 +20,43 @@
  *	SOFTWARE.
  */
 
-#include <chrono>
-#include <thread>
 #include <easy_win32.h>
 
 /*********************************************************************************
-***********************************    main    ***********************************
+****************************    KeyboardEventTest    *****************************
 *********************************************************************************/
 
-extern void MouseEventTest(EzWindow & window);
-extern void KeyboardEventTest(EzWindow & window);
-
-int main()
+/**
+ *	@brief		Simple keyboard event testing routine.
+ *	@details	Listens for all key press, repeat, and release actions.
+ *	@note		Pressing the `Escape` key will terminate the test.
+ */
+void KeyboardEventTest(EzWindow & window)
 {
-	EzWindow window;
-	window.SetTitle("EasyWin32");
-	window.SetStyle(EzStyle::Overlapped);
-	window.Open();
-	window.Show();
+	bool testFinished = false;
 
-	MouseEventTest(window);
-	KeyboardEventTest(window);
-
-	//	Setup callbacks
+	// Keyboard event callback
 	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
 	{
-		if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
-		{
-			window.Close();
-		}
+		printf("Key: %s, Action: %s\n", ToString(key), ToString(action));
 
-		return 0;
+		if (key == EzKey::Escape && action == EzKeyAction::Press)
+		{
+			testFinished = true;
+		}
+		return 0;	// message handled
 	};
 
-	//	Main loop
-	while (window.IsOpen())
-	{
-		if (!window.ProcessEvent())
-		{
-			using namespace std::chrono_literals;
+	printf("Keyboard event test started.\n");
 
-			std::this_thread::sleep_for(1ms);
-		}
+	// Main event loop
+	while (window.IsOpen() && !testFinished)
+	{
+		window.WaitProcessEvent();
 	}
 
-	return 0;
+	printf("Keyboard event test finished.\n\n");
+
+	// Cleanup
+	window.onKeyboardPress = nullptr;
 }
