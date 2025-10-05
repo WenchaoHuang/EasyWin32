@@ -35,8 +35,8 @@ option(EZWIN32_BUILD_EXAMPLES "Build examples for ${TARGET_NAME} library" OFF)
 
 # Source files
 file(GLOB EZWIN32_SOURCES CONFIGURE_DEPENDS
-    "${PROJECT_SOURCE_DIR}/easy_win32.cpp"
-    "${PROJECT_SOURCE_DIR}/easy_win32.h"
+    "${PROJECT_SOURCE_DIR}/easywin32.cpp"
+    "${PROJECT_SOURCE_DIR}/easywin32.h"
 )
 
 # Create the static library

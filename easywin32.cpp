@@ -22,4 +22,4 @@
 
 #define EZWIN32_IMPLEMENTATION
 
-#include "easy_win32.h"
+#include "easywin32.h"

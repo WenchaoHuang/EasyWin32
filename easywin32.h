@@ -35,7 +35,7 @@
 ***************************    Forward Declarations    ***************************
 *********************************************************************************/
 
-namespace easy_win32
+namespace easywin32
 {
 	class Window;
 
@@ -482,15 +482,15 @@ namespace easy_win32
 	}
 }
 
-using EzKey = easy_win32::Key;
-using EzStyle = easy_win32::Style;
-using EzWindow = easy_win32::Window;
-using EzCursor = easy_win32::Cursor;
-using EzKeyAction = easy_win32::KeyAction;
-using EzMouseAction = easy_win32::MouseAction;
-using EzMouseButton = easy_win32::MouseButton;
-using EzHitTestResult = easy_win32::HitTestResult;
-using EzMouseStateBits = easy_win32::MouseStateBits;
+using EzKey = easywin32::Key;
+using EzStyle = easywin32::Style;
+using EzWindow = easywin32::Window;
+using EzCursor = easywin32::Cursor;
+using EzKeyAction = easywin32::KeyAction;
+using EzMouseAction = easywin32::MouseAction;
+using EzMouseButton = easywin32::MouseButton;
+using EzHitTestResult = easywin32::HitTestResult;
+using EzMouseStateBits = easywin32::MouseStateBits;
 
 /*********************************************************************************
 **********************************    Window    **********************************
@@ -499,7 +499,7 @@ using EzMouseStateBits = easy_win32::MouseStateBits;
 /**
  *	@brief		
  */
-class easy_win32::Window
+class easywin32::Window
 {
 
 public:
@@ -784,7 +784,7 @@ private:
  *		- On `WM_DESTROY`, a quit message is posted to end the application loop.
  *		- For other messages, the stored Window pointer is used to dispatch events to registered callbacks (e.g., onClose, onResize, onMouseClick).
  */
-LRESULT easy_win32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_CREATE)		//	Retrieve the use pointer
 	{
@@ -911,7 +911,7 @@ LRESULT easy_win32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 }
 
 
-void easy_win32::Window::Open()
+void easywin32::Window::Open()
 {
 	if (::IsWindow(m_hWnd) != 0)		return;
 
@@ -972,7 +972,7 @@ void easy_win32::Window::Open()
 }
 
 
-RECT easy_win32::Window::AdjustWindowRect() const
+RECT easywin32::Window::AdjustWindowRect() const
 {
 	auto rect = m_bounds;
 
@@ -984,7 +984,7 @@ RECT easy_win32::Window::AdjustWindowRect() const
 }
 
 
-void easy_win32::Window::SetStyle(Style style)
+void easywin32::Window::SetStyle(Style style)
 {
 	if (m_style != style)
 	{
