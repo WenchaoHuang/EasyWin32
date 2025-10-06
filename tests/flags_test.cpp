@@ -23,40 +23,41 @@
 #include <easywin32.h>
 
 /*********************************************************************************
-****************************    KeyboardEventTest    *****************************
+********************************    flagsTest    *********************************
 *********************************************************************************/
 
-/**
- *	@brief		Simple keyboard event testing routine.
- *	@details	Listens for all key press, repeat, and release actions.
- *	@note		Pressing the `Escape` key will terminate the test.
- */
-void KeyboardEventTest(EzWindow & window)
+void flagsTest()
 {
-	bool testFinished = false;
+	printf("=== Flags Test Start ===\n");
 
-	// Keyboard event callback
-	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
-	{
-		printf("Key: %s, Action: %s\n", ToString(key), ToString(action));
+	EzMouseStateFlags stateFlags;
 
-		if (key == EzKey::Escape && action == EzKeyAction::Press)
-		{
-			testFinished = true;
-		}
-		return 0;	// message handled
-	};
+	assert(stateFlags.none());
+	assert(!stateFlags.any());
 
-	printf("Keyboard event test started.\n");
+	stateFlags |= EzMouseState::Left;
+	stateFlags |= EzMouseState::Right;
+	assert(stateFlags.has(EzMouseState::Left));
+	assert(stateFlags.has(EzMouseState::Right));
+	assert(!stateFlags.has(EzMouseState::Ctrl));
 
-	// Main event loop
-	while (window.IsOpen() && !testFinished)
-	{
-		window.WaitProcessEvent();
-	}
+	stateFlags ^= EzMouseState::Right;
+	assert(stateFlags.has(EzMouseState::Left));
+	assert(!stateFlags.has(EzMouseState::Right));
 
-	printf("Keyboard event test finished.\n\n");
+	EzMouseStateFlags mask = EzMouseState::Left;
+	auto result = stateFlags & mask;
+	assert(result.has(EzMouseState::Left));
+	assert(!result.has(EzMouseState::Right));
 
-	// Cleanup
-	window.onKeyboardPress = nullptr;
+	auto inverted = ~stateFlags;
+	assert(inverted.has(EzMouseState::Right));
+	assert(!inverted.none());
+
+	stateFlags.clear();
+	assert(stateFlags.none());
+	assert(!stateFlags.any());
+
+	printf("All assertions passed!\n");
+	printf("==== Flags Test End ====\n");
 }

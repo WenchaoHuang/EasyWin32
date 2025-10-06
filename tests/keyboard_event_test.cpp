@@ -23,41 +23,40 @@
 #include <easywin32.h>
 
 /*********************************************************************************
-********************************    FlagsTest    *********************************
+****************************    keyboardEventTest    *****************************
 *********************************************************************************/
 
-void FlagsTest()
+/**
+ *	@brief		Simple keyboard event testing routine.
+ *	@details	Listens for all key press, repeat, and release actions.
+ *	@note		Pressing the `Escape` key will terminate the test.
+ */
+void keyboardEventTest(EzWindow & window)
 {
-	printf("=== Flags Test Start ===\n");
+	bool testFinished = false;
 
-	EzMouseStateFlags stateFlags;
+	// Keyboard event callback
+	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
+	{
+		printf("%s, %s\n", easywin32::to_string(key), easywin32::to_string(action));
 
-	assert(stateFlags.none());
-	assert(!stateFlags.any());
+		if (key == EzKey::Escape && action == EzKeyAction::Press)
+		{
+			testFinished = true;
+		}
+		return 0;	// message handled
+	};
 
-	stateFlags |= EzMouseState::Left;
-	stateFlags |= EzMouseState::Right;
-	assert(stateFlags.has(EzMouseState::Left));
-	assert(stateFlags.has(EzMouseState::Right));
-	assert(!stateFlags.has(EzMouseState::Ctrl));
+	printf("Keyboard event test started.\n");
 
-	stateFlags ^= EzMouseState::Right;
-	assert(stateFlags.has(EzMouseState::Left));
-	assert(!stateFlags.has(EzMouseState::Right));
+	// Main event loop
+	while (window.isOpen() && !testFinished)
+	{
+		window.waitProcessEvent();
+	}
 
-	EzMouseStateFlags mask = EzMouseState::Left;
-	auto result = stateFlags & mask;
-	assert(result.has(EzMouseState::Left));
-	assert(!result.has(EzMouseState::Right));
+	printf("Keyboard event test finished.\n\n");
 
-	auto inverted = ~stateFlags;
-	assert(inverted.has(EzMouseState::Right));
-	assert(!inverted.none());
-
-	stateFlags.clear();
-	assert(stateFlags.none());
-	assert(!stateFlags.any());
-
-	printf("All assertions passed!\n");
-	printf("==== Flags Test End ====\n");
+	// Cleanup
+	window.onKeyboardPress = nullptr;
 }

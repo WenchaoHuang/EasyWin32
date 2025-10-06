@@ -23,7 +23,7 @@
 #include <easywin32.h>
 
 /*********************************************************************************
-******************************    MouseEventTest    ******************************
+******************************    mouseEventTest    ******************************
 *********************************************************************************/
 
 /**
@@ -31,14 +31,14 @@
  *	@details	This function listens for mouse movement and click events.
  *	@note		Pressing the `Escape` key will end the test.
  */
-void MouseEventTest(EzWindow & window)
+void mouseEventTest(EzWindow & window)
 {
 	bool testFinished = false;
 
 	// Mouse move callback: prints current position
 	window.onMouseMove = [](int x, int y, EzMouseStateFlags stateFlags)
 	{
-		printf("Mouse pos: { %d, %d }, %s ¡ª press 'Esc' to finish.\n", x, y, ToString(stateFlags).c_str());
+		printf("Mouse pos: { %d, %d }, %s ¡ª press 'Esc' to finish.\n", x, y, easywin32::to_string(stateFlags).c_str());
 
 		return 0;
 	};
@@ -46,7 +46,7 @@ void MouseEventTest(EzWindow & window)
 	// Mouse click callback: prints button and action info
 	window.onMouseClick = [](EzMouseButton button, EzMouseAction action, EzMouseStateFlags stateFlags)
 	{
-		printf("%s, %s, %s.\n", ToString(button), ToString(action), ToString(stateFlags).c_str());
+		printf("%s, %s, %s.\n", easywin32::to_string(button), easywin32::to_string(action), easywin32::to_string(stateFlags).c_str());
 
 		return 0;
 	};
@@ -55,9 +55,9 @@ void MouseEventTest(EzWindow & window)
 	window.onWheelScroll = [](int dx, int dy, EzMouseStateFlags stateFlags)
 	{
 		if (dx != 0)
-			printf("Mouse wheel scrolled horizontally: %d, %s.\n", dx, ToString(stateFlags).c_str());
+			printf("Mouse wheel scrolled horizontally: %d, %s.\n", dx, to_string(stateFlags).c_str());
 		if (dy != 0)
-			printf("Mouse wheel scrolled vertically: %d, %s.\n", dy, ToString(stateFlags).c_str());
+			printf("Mouse wheel scrolled vertically: %d, %s.\n", dy, to_string(stateFlags).c_str());
 		return 0;
 	};
 
@@ -74,9 +74,9 @@ void MouseEventTest(EzWindow & window)
 	printf("Mouse event test started.\n");
 
 	// Main event loop
-	while (window.IsOpen() && !testFinished)
+	while (window.isOpen() && !testFinished)
 	{
-		window.WaitProcessEvent();
+		window.waitProcessEvent();
 	}
 
 	printf("Mouse event test finished.\n\n");
