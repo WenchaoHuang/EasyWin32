@@ -14,33 +14,47 @@ EasyWin32 is a lightweight, header-only C++ wrapper for Win32 window management,
  - Fine-grained event handling: Offers more detailed control over Win32 events than libraries like GLFW, allowing developers to handle window messages with greater precision.
  - High code readability: The API is developer-friendly and easy to understand, making maintenance and extension straightforward.
 
-EasyWin32 is perfect for Windows-exclusive applications where simplicity, and clear code are priorities.
+## Installation
+
+### Prerequisites
+- CMake (version 3.10 or above)
+- C++17 compatible compiler
+
+### Build Instructions
+
+```bash
+git clone https://github.com/WenchaoHuang/EasyWin32.git
+cd EasyWin32
+mkdir build
+cd build
+cmake ..
+```
 
 ## Example:
 ```cpp
 #define EZWIN32_IMPLEMENTATION
-#include "easy_win32.h"
+#include "easywin32.h"
 
 EzWindow myWindow;
-myWindow.SetTitle(L"EasyWin32");
-myWindow.SetPos(100, 100, 900, 700);
-myWindow.SetStyle(EzStyle::Overlapped);
-myWindow.Open();
-myWindow.Show();
+myWindow.setTitle(L"EasyWin32");
+myWindow.setPos(100, 100, 900, 700);
+myWindow.setStyle(EzStyle::Overlapped);
+myWindow.open();
+myWindow.show();
 
 // Setup callbacks
-window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
+myWindow.onKeyboardPress = [&](EzKey key, EzKeyAction action)
 {
     if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
     {
-        window.Close();
+        myWindow.close();
     }
 
     return 0;
 };
 
 // Main loop
-while (myWindow.IsOpen())
+while (myWindow.isOpen())
 {
     if (!myWindow.processEvent())
     {
