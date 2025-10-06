@@ -28,37 +28,37 @@
 ***********************************    main    ***********************************
 *********************************************************************************/
 
-extern void FlagsTest();
-extern void MouseEventTest(EzWindow & window);
-extern void KeyboardEventTest(EzWindow & window);
+extern void flagsTest();
+extern void mouseEventTest(EzWindow & window);
+extern void keyboardEventTest(EzWindow & window);
 
 int main()
 {
 	EzWindow window;
-	window.SetTitle("EasyWin32");
-	window.SetStyle(EzStyle::Overlapped);
-	window.Open();
-	window.Show();
+	window.setTitle("EasyWin32");
+	window.setStyle(EzStyle::Overlapped);
+	window.open();
+	window.show();
 
-	FlagsTest();
-	MouseEventTest(window);
-	KeyboardEventTest(window);
+	flagsTest();
+	mouseEventTest(window);
+	keyboardEventTest(window);
 
 	//	Setup callbacks
 	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
 	{
 		if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
 		{
-			window.Close();
+			window.close();
 		}
 
 		return 0;
 	};
 
 	//	Main loop
-	while (window.IsOpen())
+	while (window.isOpen())
 	{
-		if (!window.ProcessEvent())
+		if (!window.processEvent())
 		{
 			using namespace std::chrono_literals;
 

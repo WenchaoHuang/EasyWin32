@@ -267,7 +267,7 @@ namespace easywin32
 	};
 
 	//! @brief	Convert `Key` enum to string for debugging or logging.
-	static inline const char* ToString(Key key)
+	static inline const char * to_string(Key key)
 	{
 		switch (key)
 		{
@@ -344,7 +344,7 @@ namespace easywin32
 	};
 
 	//!	@brief	Converts a `MouseButton` enum value to a string representation.
-	static inline const char * ToString(MouseButton button)
+	static inline const char * to_string(MouseButton button)
 	{
 		switch (button)
 		{
@@ -377,7 +377,7 @@ namespace easywin32
 	EZWIN32_ENABLE_ENUM_FLAGS(MouseState);
 
 	//!	@brief	Converts a `Flags<MouseState>` to a readable string.
-	static inline std::string ToString(Flags<MouseState> stateFlags)
+	static inline std::string to_string(Flags<MouseState> stateFlags)
 	{
 		std::string result;
 
@@ -414,7 +414,7 @@ namespace easywin32
 	};
 
 	//! @brief	Converts a `MouseAction` enum value to a string representation.
-	static inline const char * ToString(MouseAction action)
+	static inline const char * to_string(MouseAction action)
 	{
 		switch (action)
 		{
@@ -438,7 +438,7 @@ namespace easywin32
 	};
 
 	//!	@brief	Convert `KeyAction` enum to string for debugging or logging.
-	static inline const char * ToString(KeyAction action)
+	static inline const char * to_string(KeyAction action)
 	{
 		switch (action)
 		{
@@ -473,7 +473,7 @@ namespace easywin32
 	};
 
 	//!	@brief	Convert `Cursor` enum to string for debugging or logging.
-	static inline const char* ToString(Cursor cursor)
+	static inline const char* to_string(Cursor cursor)
 	{
 		switch (cursor)
 		{
@@ -528,7 +528,7 @@ namespace easywin32
 
 
 	//!	@brief	Convert `HitTestResult` enum to string for debugging or logging.
-	static inline const char* ToString(HitTestResult result)
+	static inline const char* to_string(HitTestResult result)
 	{
 		switch (result)
 		{
@@ -589,78 +589,78 @@ public:
 
 	void operator=(const Window&) = delete;
 
-	~Window() { this->Close(); }
+	~Window() { this->close(); }
 
 public:
 
 	/**
 	 *	@brief			
 	 */
-	void Open();
+	void open();
 
 
 	/**
 	 *	@brief		
 	 */
-	void Close() { ::DestroyWindow(m_hWnd);		m_hWnd = nullptr; }
+	void close() { ::DestroyWindow(m_hWnd);		m_hWnd = nullptr; }
 
 public:
 
 	//!	@brief	Returns the native handle of the win32 window.
-	HWND NativeHandle() { return m_hWnd; }
+	HWND nativeHandle() { return m_hWnd; }
 
 	//!	@brief	Whether the specified window handle identifies an existing window (opened).	
-	bool IsOpen() const { return ::IsWindow(m_hWnd); }
+	bool isOpen() const { return ::IsWindow(m_hWnd); }
 
 	//!	@brief	Whether the window is minimized.
-	bool IsMinimized() const { return ::IsIconic(m_hWnd); }
+	bool isMinimized() const { return ::IsIconic(m_hWnd); }
 
 	//!	@brief	Whether the window is maximized.
-	bool IsMaximized() const { return ::IsZoomed(m_hWnd); }
+	bool isMaximized() const { return ::IsZoomed(m_hWnd); }
 
 	//!	@brief	Whether the windows is focused.
 	bool IsFocused() const { return ::GetFocus() == m_hWnd; }
 
 	//!	@brief	Checks if the window is currently marked as visible.
-	bool IsVisible() const { return ::IsWindowVisible(m_hWnd) != FALSE; }
+	bool isVisible() const { return ::IsWindowVisible(m_hWnd) != FALSE; }
 
 	//!	@brief	Whether the windows is the foreground (active) window.
-	bool IsForeground() const { return ::GetForegroundWindow() == m_hWnd; }
+	bool isForeground() const { return ::GetForegroundWindow() == m_hWnd; }
 
 public:
 
 	//!	@brief	Bring the window to front and set input focus.
-	void SetFocus() { ::SetFocus(m_hWnd); }
+	void setFocus() { ::SetFocus(m_hWnd); }
 
 	//!	@brief	Hide the window.
-	void Hide() { ::ShowWindow(m_hWnd, SW_HIDE); }
+	void hide() { ::ShowWindow(m_hWnd, SW_HIDE); }
 
 	//!	@brief	Bring the window to the top of the Z order.
-	void BringToTop() { ::BringWindowToTop(m_hWnd); }
+	void bringToTop() { ::BringWindowToTop(m_hWnd); }
 
 	//!	@brief	Show the window.
-	void Show() { ::ShowWindow(m_hWnd, SW_SHOWNORMAL); }
+	void show() { ::ShowWindow(m_hWnd, SW_SHOWNORMAL); }
 
 	//!	@brief	Displays or hides the cursor.
-	void ShowCursor(bool bShow) { ::ShowCursor(bShow); }
+	void showCursor(bool bShow) { ::ShowCursor(bShow); }
 
 	//!	@brief	Foreground the window.
-	void SetForeground() { ::SetForegroundWindow(m_hWnd); }
+	void setForeground() { ::SetForegroundWindow(m_hWnd); }
 
 	//!	@brief	Maximized the window.
-	void Maximize() { ::ShowWindow(m_hWnd, SW_SHOWMAXIMIZED); }
+	void maximize() { ::ShowWindow(m_hWnd, SW_SHOWMAXIMIZED); }
 
 	//!	@brief	Minimized the window.
-	void Minimize() { ::ShowWindow(m_hWnd, SW_SHOWMINIMIZED); }
+	void minimize() { ::ShowWindow(m_hWnd, SW_SHOWMINIMIZED); }
 
 	//!	@brief	Enables or disables mouse and keyboard input to the specified window.
-	void EnableInput(bool bEnable) { ::EnableWindow(m_hWnd, bEnable); }
+	void enableInput(bool bEnable) { ::EnableWindow(m_hWnd, bEnable); }
 
 	//!	@brief	Creates a timer with the specified time-out value.
-	void SetTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
+	void setTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
 
 	//!	@brief	Specify the cursor shape, must be called from the main thread.
-	void SetCursor(Cursor cursor)
+	void setCursor(Cursor cursor)
 	{
 	#ifdef UNICODE
 		::SetCursor(::LoadCursor(NULL, (LPCWSTR)cursor));
@@ -679,7 +679,7 @@ public:
 	 *				the internal title string is updated. The title will be applied
 	 *				once the window is created.
 	 */
-	void SetTitle(string_type title)
+	void setTitle(string_type title)
 	{
 		if (m_title != title)
 		{
@@ -693,13 +693,13 @@ public:
 	/**
 	 *	@brief		Returns the window title text.
 	 */
-	const string_type & GetTitle() const { return m_title; }
+	const string_type & getTitle() const { return m_title; }
 
 public:
 
-	void SetStyle(Style style);
+	void setStyle(Style style);
 
-	void SetPos(int left, int top, int right, int bottom);
+	void setPos(int left, int top, int right, int bottom);
 
 public:
 
@@ -709,7 +709,7 @@ public:
 	 *				It retrieves the message with `GetMessage`, translates it (e.g. converts virtual-key
 	 *				messages into character messages), and dispatches it to the window procedure.
 	 */
-	void WaitProcessEvent()
+	void waitProcessEvent()
 	{
 		if (m_hWnd != nullptr)	
 		{
@@ -732,7 +732,7 @@ public:
 	 *	@note		Unlike per-window message processing, passing `nullptr` as `hWnd` allows
 	 *				messages for any window in this thread to be retrieved.
 	 */
-	static void WaitProcessThreadWindows()
+	static void waitProcessThreadWindows()
 	{
 		MSG uMsg = {};
 
@@ -751,7 +751,7 @@ public:
 	 *				If a message exists, it is translated and dispatched to the window procedure.
 	 *	@return		`true` if a message was processed, `false` if no messages were pending.
 	 */
-	bool ProcessEvent()
+	bool processEvent()
 	{
 		if (m_hWnd != nullptr)
 		{
@@ -780,7 +780,7 @@ public:
 	 *	@note		Unlike per-window processing, passing `nullptr` as `hWnd` retrieves messages
 	 *				for any window in this thread.
 	 */
-	static bool ProcessThreadWindows()
+	static bool processThreadWindows()
 	{
 		MSG uMsg = {};
 
@@ -798,10 +798,10 @@ public:
 
 private:
 
-	RECT AdjustWindowRect() const;
+	RECT adjustWindowRect() const;
 
 	//!	@brief	Static window procedure for message dispatching.
-	static LRESULT Procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 public:
 
@@ -847,8 +847,6 @@ private:
 #ifdef EZWIN32_IMPLEMENTATION
 
 #include <windowsx.h>
-#undef IsMinimized
-#undef IsMaximized
 
 /**
  *	@brief		Static window procedure for message dispatching.
@@ -865,7 +863,7 @@ private:
  *		- On `WM_DESTROY`, a quit message is posted to end the application loop.
  *		- For other messages, the stored Window pointer is used to dispatch events to registered callbacks (e.g., onClose, onResize, onMouseClick).
  */
-LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_CREATE)		//	Retrieve the use pointer
 	{
@@ -969,7 +967,7 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 }
 
 
-void easywin32::Window::Open()
+void easywin32::Window::open()
 {
 	if (::IsWindow(m_hWnd) != 0)		return;
 
@@ -989,7 +987,7 @@ void easywin32::Window::Open()
 		{
 			cbSize			= sizeof(WNDCLASSEXW);
 			style			= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-			lpfnWndProc		= Window::Procedure;
+			lpfnWndProc		= Window::procedure;
 			cbClsExtra		= 0;
 			cbWndExtra		= 0;
 			hInstance		= ::GetModuleHandle(NULL);
@@ -1019,7 +1017,7 @@ void easywin32::Window::Open()
 
 	if (s_win32Class.isRegistered)
 	{
-		auto rect = this->AdjustWindowRect();
+		auto rect = this->adjustWindowRect();
 
 		DWORD dwStyle = (m_style == Style::Popup) ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
 
@@ -1030,7 +1028,7 @@ void easywin32::Window::Open()
 }
 
 
-RECT easywin32::Window::AdjustWindowRect() const
+RECT easywin32::Window::adjustWindowRect() const
 {
 	auto rect = m_bounds;
 
@@ -1042,7 +1040,7 @@ RECT easywin32::Window::AdjustWindowRect() const
 }
 
 
-void easywin32::Window::SetStyle(Style style)
+void easywin32::Window::setStyle(Style style)
 {
 	if (m_style != style)
 	{
