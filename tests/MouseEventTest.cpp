@@ -36,7 +36,7 @@ void MouseEventTest(EzWindow & window)
 	bool testFinished = false;
 
 	// Mouse move callback: prints current position
-	window.onMouseMove = [](int x, int y, EzMouseStateBits stateFlags)
+	window.onMouseMove = [](int x, int y, EzMouseStateFlags stateFlags)
 	{
 		printf("Mouse pos: { %d, %d }, %s ¡ª press 'Esc' to finish.\n", x, y, ToString(stateFlags).c_str());
 
@@ -44,7 +44,7 @@ void MouseEventTest(EzWindow & window)
 	};
 
 	// Mouse click callback: prints button and action info
-	window.onMouseClick = [](EzMouseButton button, EzMouseAction action, EzMouseStateBits stateFlags)
+	window.onMouseClick = [](EzMouseButton button, EzMouseAction action, EzMouseStateFlags stateFlags)
 	{
 		printf("%s, %s, %s.\n", ToString(button), ToString(action), ToString(stateFlags).c_str());
 
@@ -52,7 +52,7 @@ void MouseEventTest(EzWindow & window)
 	};
 
 	// Mouse wheel scroll callback ¡ª prints scroll delta
-	window.onWheelScroll = [](int dx, int dy, EzMouseStateBits stateFlags)
+	window.onWheelScroll = [](int dx, int dy, EzMouseStateFlags stateFlags)
 	{
 		if (dx != 0)
 			printf("Mouse wheel scrolled horizontally: %d, %s.\n", dx, ToString(stateFlags).c_str());
