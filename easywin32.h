@@ -727,11 +727,13 @@ private:
 public:
 
 	/**
-	 *	@brief		User-defined callback functions, called when triggled and if defined.
-	 *	@retval		0 - If the event is fully handled by the user callback.
-	 *	@retval		1 - If the event should continue to be dispatched (e.g., to DefWindowProc).
+	 *	@brief		User-defined callback functions, called when triggered and defined by the user.
+	 *	@note		Each callback can optionally handle the event and determine whether it should be passed to the 
+	 *				system's default handler (`DefWindowProc`).
+	 *	@details	If the callback returns any value other than `-1`, that value will be returned directly as the 
+	 *				window procedure¡¯s result ¡ª meaning the event is considered handled and `DefWindowProc` will **not** be called.
+	 *	@details	If the callback returns `-1`, the message will be forwarded to `DefWindowProc` for default processing.
 	 */
-	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>					forwardMessage;		// Custom forwarder for any window message before default handling.
 	std::function<LRESULT(wchar_t)>										onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
 	std::function<LRESULT()>											onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
 	std::function<LRESULT()>											onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
@@ -813,16 +815,7 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	if (window != nullptr)
 	{
-		LRESULT result = 1;
-
-		//	Forward message to custom handler if defined
-		if (window->forwardMessage)
-		{
-			result = window->forwardMessage(hWnd, uMsg, wParam, lParam);
-
-			if (result == 0)
-				return result;
-		}
+		LRESULT result = -1;
 
 		//	Dispatch standard messages to callbacks
 		switch (uMsg)
@@ -838,8 +831,9 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			case WM_SYSCHAR:		if (window->onInputCharacter)	result = window->onInputCharacter(static_cast<wchar_t>(wParam));	break;
 			case WM_UNICHAR:		if (window->onInputCharacter)	result = window->onInputCharacter(static_cast<wchar_t>(wParam));	break;
 
-			case WM_MOVE:			if (window->onMove)				result = window->onMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));		break;
-			case WM_SIZE:			if (window->onResize)			result = window->onResize(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));		break;
+			case WM_MOVE:			if (window->onMove)				result = window->onMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));				break;
+			case WM_SIZE:			if (window->onResize)			result = window->onResize(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));				break;
+			case WM_NCHITTEST:		if (window->onHitTest)			result = (LRESULT)window->onHitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));	break;
 
 			case WM_KEYUP:			if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), KeyAction::Release);		break;
 			case WM_SYSKEYUP:		if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), KeyAction::Release);		break;
@@ -885,24 +879,9 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 				break;
 			}
-
-			case WM_NCHITTEST:
-			{
-				if (window->onHitTest)
-				{
-					auto hitResult = window->onHitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-
-					if (hitResult != HitTestResult::Default)
-					{
-						return static_cast<LRESULT>(hitResult);
-					}
-				}
-
-				break;
-			}
 		}
 
-		if (result == 0)
+		if (result != -1)
 			return result;
 	}
 
