@@ -52,6 +52,80 @@ namespace easywin32
 #endif
 
 	/*****************************************************************************
+	***************************    Flags<EnumType>    ****************************
+	*****************************************************************************/
+
+	//!	@brief		A strongly-typed bit flag wrapper for enum classes.
+	template<typename EnumType> struct Flags
+	{
+		static_assert(std::is_enum_v<EnumType>, "Flags<T>: T must be an enum type.");
+
+		using Type = std::underlying_type_t<EnumType>;
+
+		Type	flags;
+
+		// Constructors
+		constexpr Flags() noexcept : flags(0) {}
+		constexpr Flags(Type value) noexcept : flags(value) {}
+		constexpr Flags(EnumType value) noexcept : flags(static_cast<Type>(value)) {}
+
+		// Bitwise OR
+		constexpr Flags operator|(Flags rhs) const noexcept { return Flags(flags | rhs.flags); }
+		constexpr Flags operator|(EnumType rhs) const noexcept { return Flags(flags | static_cast<Type>(rhs)); }
+		constexpr Flags & operator|=(EnumType rhs) noexcept { flags |= static_cast<Type>(rhs); return *this; }
+		constexpr Flags & operator|=(Flags rhs) noexcept { flags |= rhs.flags; return *this; }
+
+		// Bitwise AND
+		constexpr Flags operator&(Flags rhs) const noexcept { return Flags(flags & rhs.flags); }
+		constexpr Flags operator&(EnumType rhs) const noexcept { return Flags(flags & static_cast<Type>(rhs)); }
+		constexpr Flags & operator&=(EnumType rhs) noexcept { flags &= static_cast<Type>(rhs); return *this; }
+		constexpr Flags & operator&=(Flags rhs) noexcept { flags &= rhs.flags; return *this; }
+
+		// Bitwise XOR
+		constexpr Flags operator^(Flags rhs) const noexcept { return Flags(flags ^ rhs.flags); }
+		constexpr Flags & operator^=(Flags rhs) noexcept { flags ^= rhs.flags; return *this; }
+
+		// Bitwise NOT
+		constexpr Flags operator~() const noexcept { return Flags(~flags); }
+
+		// Comparison
+		constexpr bool operator==(Flags rhs) const noexcept { return flags == rhs.flags; }
+		constexpr bool operator!=(Flags rhs) const noexcept { return flags != rhs.flags; }
+
+		// Conversion
+		constexpr operator bool() const noexcept { return flags != 0; }
+		constexpr operator Type() const noexcept { return flags; }
+
+		// Test
+		constexpr bool has(EnumType bit) const noexcept { return (flags & static_cast<Type>(bit)) != 0; }
+		constexpr bool none() const noexcept { return flags == 0; }
+		constexpr bool any() const noexcept { return flags != 0; }
+
+		// Clear
+		constexpr void clear() noexcept { flags = 0; }
+	};
+
+	/**
+	 *	@brief		Enables bitwise operators (|, &, ~) for a strongly-typed enum.
+	 *	@details	This macro defines overloaded operators that allow using the enum as
+	 *				bit flags through the `Flags<EnumType>` wrapper.
+	 */
+#define EZWIN32_ENABLE_ENUM_FLAGS(EnumType)										\
+																				\
+	constexpr Flags<EnumType> operator|(EnumType lhs, EnumType rhs) noexcept	\
+	{																			\
+		return Flags<EnumType>(lhs) | Flags<EnumType>(rhs);						\
+	}																			\
+	constexpr Flags<EnumType> operator&(EnumType lhs, EnumType rhs) noexcept	\
+	{																			\
+		return Flags<EnumType>(lhs) & Flags<EnumType>(rhs);						\
+	}																			\
+	constexpr Flags<EnumType> operator~(EnumType v) noexcept					\
+	{																			\
+		return ~Flags<EnumType>(v);												\
+	}
+
+	/*****************************************************************************
 	*********************************    Key    **********************************
 	*****************************************************************************/
 
@@ -284,11 +358,11 @@ namespace easywin32
 	}
 
 	/*****************************************************************************
-	****************************    MouseStateBits    ****************************
+	******************************    MouseState    ******************************
 	*****************************************************************************/
 
 	//! @brief	Mouse state bit flags representing the current button and key states.
-	enum class MouseStateBits
+	enum class MouseState
 	{
 		Left		= MK_LBUTTON,		//!< Left mouse button is pressed.
 		Right		= MK_RBUTTON,		//!< Right mouse button is pressed.
@@ -299,8 +373,11 @@ namespace easywin32
 		Ctrl		= MK_CONTROL,		//!< CTRL key is held down.
 	};
 
-	//!	@brief	Converts a `MouseStateBits` flag combination to a readable string.
-	static inline std::string ToString(MouseStateBits stateFlags)
+	//!	@brief	Enables bitwise operators (|, &, ~).
+	EZWIN32_ENABLE_ENUM_FLAGS(MouseState);
+
+	//!	@brief	Converts a `Flags<MouseState>` to a readable string.
+	static inline std::string ToString(Flags<MouseState> stateFlags)
 	{
 		std::string result;
 
@@ -312,14 +389,14 @@ namespace easywin32
 			result += name;
 		};
 
-		if ((int)stateFlags & MK_LBUTTON)		append("MouseStateBits::Left");
-		if ((int)stateFlags & MK_RBUTTON)		append("MouseStateBits::Right");
-		if ((int)stateFlags & MK_MBUTTON)		append("MouseStateBits::Middle");
-		if ((int)stateFlags & MK_XBUTTON1)		append("MouseStateBits::XButton1");
-		if ((int)stateFlags & MK_XBUTTON2)		append("MouseStateBits::XButton2");
-		if ((int)stateFlags & MK_SHIFT)			append("MouseStateBits::Shift");
-		if ((int)stateFlags & MK_CONTROL)		append("MouseStateBits::Ctrl");
-		if (result.empty())						result = "MouseStateBits::None";
+		if (stateFlags.has(MouseState::Left))		append("MouseState::Left");
+		if (stateFlags.has(MouseState::Right))		append("MouseState::Right");
+		if (stateFlags.has(MouseState::Middle))		append("MouseState::Middle");
+		if (stateFlags.has(MouseState::XButton1))	append("MouseState::XButton1");
+		if (stateFlags.has(MouseState::XButton2))	append("MouseState::XButton2");
+		if (stateFlags.has(MouseState::Shift))		append("MouseState::Shift");
+		if (stateFlags.has(MouseState::Ctrl))		append("MouseState::Ctrl");
+		if (result.empty())							append("MouseState::None");
 
 		return result;
 	}
@@ -487,10 +564,12 @@ using EzStyle = easywin32::Style;
 using EzWindow = easywin32::Window;
 using EzCursor = easywin32::Cursor;
 using EzKeyAction = easywin32::KeyAction;
+using EzMouseState = easywin32::MouseState;
 using EzMouseAction = easywin32::MouseAction;
 using EzMouseButton = easywin32::MouseButton;
 using EzHitTestResult = easywin32::HitTestResult;
-using EzMouseStateBits = easywin32::MouseStateBits;
+using EzMouseStateFlags = easywin32::Flags<easywin32::MouseState>;
+template<typename EnumType> using EzFlags = easywin32::Flags<EnumType>;
 
 /*********************************************************************************
 **********************************    Window    **********************************
@@ -734,20 +813,20 @@ public:
 	 *				window procedure¡¯s result ¡ª meaning the event is considered handled and `DefWindowProc` will **not** be called.
 	 *	@details	If the callback returns `-1`, the message will be forwarded to `DefWindowProc` for default processing.
 	 */
-	std::function<LRESULT(wchar_t)>										onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
-	std::function<LRESULT()>											onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
-	std::function<LRESULT()>											onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
-	std::function<LRESULT()>											onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
-	std::function<LRESULT()>											onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
-	std::function<LRESULT()>											onTimer;			// Called when a timer event occurs (WM_TIMER).
-	std::function<LRESULT()>											onClose;			// Called when the window is about to close (WM_CLOSE).
-	std::function<LRESULT(int w, int h)>								onResize;			// Called when the window is resized (WM_SIZE).
-	std::function<LRESULT(int x, int y)>								onMove;				// Called when the window is moved (WM_MOVE).
-	std::function<LRESULT(int x, int y, MouseStateBits)>				onMouseMove;		// Called when the mouse is moved (WM_MOUSEMOVE).
-	std::function<LRESULT(int dx, int dy, MouseStateBits)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
-	std::function<LRESULT(MouseButton, MouseAction, MouseStateBits)>	onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
-	std::function<LRESULT(Key, KeyAction)>								onKeyboardPress;	// Called when a key is pressed, released, or repeated (WM_KEYDOWN/WM_KEYUP).
-	std::function<HitTestResult(int x, int y)>							onHitTest;			// Called when WM_NCHITTEST is received, should return the hit-test result based on cursor position.
+	std::function<LRESULT(wchar_t)>											onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
+	std::function<LRESULT()>												onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
+	std::function<LRESULT()>												onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
+	std::function<LRESULT()>												onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
+	std::function<LRESULT()>												onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
+	std::function<LRESULT()>												onTimer;			// Called when a timer event occurs (WM_TIMER).
+	std::function<LRESULT()>												onClose;			// Called when the window is about to close (WM_CLOSE).
+	std::function<LRESULT(int w, int h)>									onResize;			// Called when the window is resized (WM_SIZE).
+	std::function<LRESULT(int x, int y)>									onMove;				// Called when the window is moved (WM_MOVE).
+	std::function<LRESULT(int x, int y, Flags<MouseState>)>					onMouseMove;		// Called when the mouse is moved (WM_MOUSEMOVE).
+	std::function<LRESULT(int dx, int dy, Flags<MouseState>)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
+	std::function<LRESULT(MouseButton, MouseAction, Flags<MouseState>)>		onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
+	std::function<LRESULT(Key, KeyAction)>									onKeyboardPress;	// Called when a key is pressed, released, or repeated (WM_KEYDOWN/WM_KEYUP).
+	std::function<HitTestResult(int x, int y)>								onHitTest;			// Called when WM_NCHITTEST is received, should return the hit-test result based on cursor position.
 
 private:
 
@@ -841,21 +920,21 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			case WM_KEYDOWN:		if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), (lParam & (1 << 30)) ? KeyAction::Repeat : KeyAction::Press);		break;
 			case WM_SYSKEYDOWN:		if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), (lParam & (1 << 30)) ? KeyAction::Repeat : KeyAction::Press);		break;
 
-			case WM_MOUSEMOVE:		if (window->onMouseMove)		result = window->onMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), static_cast<MouseStateBits>(wParam & 127));				break;
-			case WM_MOUSEWHEEL:		if (window->onWheelScroll)		result = window->onWheelScroll(0, static_cast<SHORT>(HIWORD(wParam)) / WHEEL_DELTA, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_MOUSEHWHEEL:	if (window->onWheelScroll)		result = window->onWheelScroll(static_cast<SHORT>(HIWORD(wParam)) / WHEEL_DELTA, 0, static_cast<MouseStateBits>(wParam & 127));		break;
+			case WM_MOUSEMOVE:		if (window->onMouseMove)		result = window->onMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), static_cast<MouseState>(wParam & 127));				break;
+			case WM_MOUSEWHEEL:		if (window->onWheelScroll)		result = window->onWheelScroll(0, static_cast<SHORT>(HIWORD(wParam)) / WHEEL_DELTA, static_cast<MouseState>(wParam & 127));		break;
+			case WM_MOUSEHWHEEL:	if (window->onWheelScroll)		result = window->onWheelScroll(static_cast<SHORT>(HIWORD(wParam)) / WHEEL_DELTA, 0, static_cast<MouseState>(wParam & 127));		break;
 
-			case WM_LBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::Up, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_RBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::Up, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_MBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::Up, static_cast<MouseStateBits>(wParam & 127));		break;
+			case WM_LBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::Up, static_cast<MouseState>(wParam & 127));		break;
+			case WM_RBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::Up, static_cast<MouseState>(wParam & 127));		break;
+			case WM_MBUTTONUP:		if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::Up, static_cast<MouseState>(wParam & 127));		break;
 
-			case WM_LBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::Down, static_cast<MouseStateBits>(wParam & 127));			break;
-			case WM_RBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::Down, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_MBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::Down, static_cast<MouseStateBits>(wParam & 127));		break;
+			case WM_LBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::Down, static_cast<MouseState>(wParam & 127));			break;
+			case WM_RBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::Down, static_cast<MouseState>(wParam & 127));		break;
+			case WM_MBUTTONDOWN:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::Down, static_cast<MouseState>(wParam & 127));		break;
 
-			case WM_LBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::DoubleClick, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_RBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::DoubleClick, static_cast<MouseStateBits>(wParam & 127));		break;
-			case WM_MBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::DoubleClick, static_cast<MouseStateBits>(wParam & 127));	break;
+			case WM_LBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Left, MouseAction::DoubleClick, static_cast<MouseState>(wParam & 127));		break;
+			case WM_RBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Right, MouseAction::DoubleClick, static_cast<MouseState>(wParam & 127));		break;
+			case WM_MBUTTONDBLCLK:	if (window->onMouseClick)		result = window->onMouseClick(MouseButton::Middle, MouseAction::DoubleClick, static_cast<MouseState>(wParam & 127));	break;
 
 			case WM_XBUTTONUP:
 			case WM_XBUTTONDOWN:
@@ -869,11 +948,11 @@ LRESULT easywin32::Window::Procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 					if (button == XBUTTON1)
 					{
-						result = window->onMouseClick(MouseButton::XButton1, action, static_cast<MouseStateBits>(wParam & 127));
+						result = window->onMouseClick(MouseButton::XButton1, action, static_cast<MouseState>(wParam & 127));
 					}
 					else if (button == XBUTTON2)
 					{
-						result = window->onMouseClick(MouseButton::XButton2, action, static_cast<MouseStateBits>(wParam & 127));
+						result = window->onMouseClick(MouseButton::XButton2, action, static_cast<MouseState>(wParam & 127));
 					}
 				}
 

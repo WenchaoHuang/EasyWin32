@@ -20,51 +20,44 @@
  *	SOFTWARE.
  */
 
-#include <chrono>
-#include <thread>
 #include <easywin32.h>
 
 /*********************************************************************************
-***********************************    main    ***********************************
+********************************    FlagsTest    *********************************
 *********************************************************************************/
 
-extern void FlagsTest();
-extern void MouseEventTest(EzWindow & window);
-extern void KeyboardEventTest(EzWindow & window);
-
-int main()
+void FlagsTest()
 {
-	EzWindow window;
-	window.SetTitle("EasyWin32");
-	window.SetStyle(EzStyle::Overlapped);
-	window.Open();
-	window.Show();
+	printf("=== Flags Test Start ===\n");
 
-	FlagsTest();
-	MouseEventTest(window);
-	KeyboardEventTest(window);
+	EzMouseStateFlags stateFlags;
 
-	//	Setup callbacks
-	window.onKeyboardPress = [&](EzKey key, EzKeyAction action)
-	{
-		if ((key == EzKey::Escape) && (action == EzKeyAction::Press))
-		{
-			window.Close();
-		}
+	assert(stateFlags.none());
+	assert(!stateFlags.any());
 
-		return 0;
-	};
+	stateFlags |= EzMouseState::Left;
+	stateFlags |= EzMouseState::Right;
+	assert(stateFlags.has(EzMouseState::Left));
+	assert(stateFlags.has(EzMouseState::Right));
+	assert(!stateFlags.has(EzMouseState::Ctrl));
 
-	//	Main loop
-	while (window.IsOpen())
-	{
-		if (!window.ProcessEvent())
-		{
-			using namespace std::chrono_literals;
+	stateFlags ^= EzMouseState::Right;
+	assert(stateFlags.has(EzMouseState::Left));
+	assert(!stateFlags.has(EzMouseState::Right));
 
-			std::this_thread::sleep_for(1ms);
-		}
-	}
+	EzMouseStateFlags mask = EzMouseState::Left;
+	auto result = stateFlags & mask;
+	assert(result.has(EzMouseState::Left));
+	assert(!result.has(EzMouseState::Right));
 
-	return 0;
+	auto inverted = ~stateFlags;
+	assert(inverted.has(EzMouseState::Right));
+	assert(!inverted.none());
+
+	stateFlags.clear();
+	assert(stateFlags.none());
+	assert(!stateFlags.any());
+
+	printf("All assertions passed!\n");
+	printf("==== Flags Test End ====\n");
 }
