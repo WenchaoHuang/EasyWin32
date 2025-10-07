@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <thread>
+#include <vector>
 #include <easywin32.h>
 
 /*********************************************************************************
@@ -39,6 +40,16 @@ int main()
 	window.setStyle(EzStyle::Overlapped);
 	window.open();
 	window.show();
+
+	std::vector<EzColor> image(1920 * 1080, EzColor{ 100, 200, 255 });
+
+	//	Draw background
+	window.onPaint = [&]()
+	{
+		window.drawBitmap(image.data(), 1920, 1080);
+
+		return 0;
+	};
 
 	flagsTest();
 	mouseEventTest(window);
