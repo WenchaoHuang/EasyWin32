@@ -52,6 +52,18 @@ namespace easywin32
 #endif
 
 	/*****************************************************************************
+	********************************    Color    *********************************
+	*****************************************************************************/
+
+	//!	@brief	Represents an RGB color with 8-bit channels.
+	struct Color
+	{
+		uint8_t	r;	//!< Red channel component (0¨C255)
+		uint8_t g;	//!< Green channel component (0¨C255)
+		uint8_t b;	//!< Blue channel component (0¨C255)
+	};
+
+	/*****************************************************************************
 	***************************    Flags<EnumType>    ****************************
 	*****************************************************************************/
 
@@ -561,6 +573,7 @@ namespace easywin32
 
 using EzKey = easywin32::Key;
 using EzStyle = easywin32::Style;
+using EzColor = easywin32::Color;
 using EzWindow = easywin32::Window;
 using EzCursor = easywin32::Cursor;
 using EzKeyAction = easywin32::KeyAction;
@@ -658,6 +671,16 @@ public:
 
 	//!	@brief	Creates a timer with the specified time-out value.
 	void setTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
+
+	//!	@brief	Draws a raw RGB bitmap onto the window at the specified position.
+	void drawBitmap(const Color * pixels, int width, int height, int dstX = 0, int dstY = 0);
+
+	//!	@brief	Requests the window to be redrawn.
+	void requestRedraw(const RECT * rect = nullptr, bool eraseBackground = false)
+	{
+		::InvalidateRect(m_hWnd, rect, eraseBackground);
+		::UpdateWindow(m_hWnd);
+	}
 
 	//!	@brief	Specify the cursor shape, must be called from the main thread.
 	void setCursor(Cursor cursor)
@@ -818,6 +841,7 @@ public:
 	std::function<LRESULT()>												onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
 	std::function<LRESULT()>												onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
 	std::function<LRESULT()>												onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
+	std::function<LRESULT()>												onPaint;			// Called when the window needs to be repainted (WM_PAINT).
 	std::function<LRESULT()>												onTimer;			// Called when a timer event occurs (WM_TIMER).
 	std::function<LRESULT()>												onClose;			// Called when the window is about to close (WM_CLOSE).
 	std::function<LRESULT(int w, int h)>									onResize;			// Called when the window is resized (WM_SIZE).
@@ -899,6 +923,7 @@ LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		{
 			case WM_CLOSE:			if (window->onClose)			result = window->onClose();			break;
 			case WM_TIMER:			if (window->onTimer)			result = window->onTimer();			break;
+			case WM_PAINT:			if (window->onPaint)			result = window->onPaint();			break;
 			case WM_SETFOCUS:		if (window->onSetFocus)			result = window->onSetFocus();		break;
 			case WM_KILLFOCUS:		if (window->onKillFocus)		result = window->onKillFocus();		break;
 			case WM_EXITSIZEMOVE:	if (window->onExitMove)			result = window->onExitMove();		break;
@@ -1025,6 +1050,51 @@ void easywin32::Window::open()
 								  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
 								  this /* Additional application data */);
 	}
+}
+
+
+/**
+ *	@brief		Draws a raw RGB bitmap onto the window at the specified position.
+ *	@details	This function copies pixel data directly to the window's client area
+ *				using GDI without relying on any GPU or graphics API.
+ *	@param[in]	pixels - Pointer to the RGB pixel data in row-major order.
+ *	@param[in]	width - Width of the bitmap in pixels.
+ *	@param[in]	height - Height of the bitmap in pixels.
+ *	@param[in]	dstX - Destination X coordinate in the client area.
+ *	@param[in]	dstY - Destination Y coordinate in the client area.
+ *	@note		The pixel format must match the expected 24-bit RGB format defined by `Color`.
+ *				The function performs an immediate blit to the window using `SetDIBitsToDevice`.
+ *	@warning	This function must be called only inside `onPaint`, because it uses BeginPaint/EndPaint.
+ *				Calling it outside `onPaint` causes undefined behavior in Win32.
+ */
+void easywin32::Window::drawBitmap(const Color * pixels, int width, int height, int dstX, int dstY)
+{
+	PAINTSTRUCT ps = {};
+	BITMAPINFO bmi = {};
+	bmi.bmiHeader.biSize			= sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth			= width;
+	bmi.bmiHeader.biHeight			= -height;				// Negative = top-down bitmap
+	bmi.bmiHeader.biPlanes			= 1;
+	bmi.bmiHeader.biBitCount		= sizeof(Color) * 8;	// 24-bit (RGB)
+	bmi.bmiHeader.biCompression		= BI_RGB;				// No compression
+
+	// Begin painting
+	HDC hdc = BeginPaint(m_hWnd, &ps);
+
+	// Draw image directly to window
+	SetDIBitsToDevice(
+		hdc,
+		dstX, dstY,			// Destination X, Y
+		width, height,		// Width, Height
+		0, 0,				// Source X, Y
+		0, height,			// Start scan line, number of scan lines
+		pixels,				// Pointer to pixel data
+		&bmi,
+		DIB_RGB_COLORS		// RGB mode
+	);
+
+	// End painting
+	EndPaint(m_hWnd, &ps);
 }
 
 
