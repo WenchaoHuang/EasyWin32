@@ -39,6 +39,11 @@ namespace easywin32
 {
 	class Window;
 
+	using Byte = BYTE;
+	using Size = SIZE;
+	using Rect = RECT;
+	using Point = POINT;
+	using Result = LRESULT;
 #ifdef UNICODE
 	using string_type = std::wstring;
 #else
@@ -588,7 +593,7 @@ namespace easywin32
 	*****************************************************************************/
 
 	//!	@brief	HitTest result type, returned by WM_NCHITTEST.
-	enum class HitTestResult : LRESULT
+	enum class HitTestResult : Result
 	{
 		Nowhere			= HTNOWHERE,		//!< No part of the window
 		Client			= HTCLIENT,			//!< Client area
@@ -613,7 +618,6 @@ namespace easywin32
 		HelpButton		= HTHELP,			//!< Help button
 		Default			= -1,				//!< Use default hit test (DefWindowProc)
 	};
-
 
 	//!	@brief	Convert `HitTestResult` enum to string for debugging or logging.
 	static inline const char* to_string(HitTestResult result)
@@ -652,8 +656,13 @@ namespace easywin32
 *********************************************************************************/
 
 using EzKey = easywin32::Key;
+using EzByte = easywin32::Byte;
+using EzSize = easywin32::Size;
+using EzRect = easywin32::Rect;
+using EzPoint = easywin32::Point;
 using EzColor = easywin32::Color;
 using EzStyle = easywin32::Style;
+using EzResult = easywin32::Result;
 using EzWindow = easywin32::Window;
 using EzCursor = easywin32::Cursor;
 using EzExStyle = easywin32::ExStyle;
@@ -723,6 +732,15 @@ public:
 	//!	@brief	Whether the windows is the foreground (active) window.
 	bool isForeground() const { return ::GetForegroundWindow() == m_hWnd; }
 
+	//!	@brief	Retrieves the position of the client area (left-top corner).
+	Point getClientPos() const { Point pt = {};		::ClientToScreen(m_hWnd, &pt);		return pt; }
+
+	//!	@brief	Gets the mouse position in client coordinates.
+	Point getMousePos() const { Point pt = {};		::GetCursorPos(&pt);	::ScreenToClient(m_hWnd, &pt);	return pt; }
+
+	//!	@brief	Returns the size of the client area (width and height) of the window in pixels.
+	Size getClientExtent() const { Rect rect = {};	::GetClientRect(m_hWnd, &rect);		return Size{ rect.right, rect.bottom }; }
+
 public:
 
 	//!	@brief	Bring the window to front and set input focus.
@@ -743,6 +761,9 @@ public:
 	//!	@brief	Foreground the window.
 	void setForeground() { ::SetForegroundWindow(m_hWnd); }
 
+	//!	@brief	Restore the winodw if it is minimized or maximized.
+	void restore() { ::ShowWindow(m_hWnd, SW_RESTORE); }
+
 	//!	@brief	Maximized the window.
 	void maximize() { ::ShowWindow(m_hWnd, SW_SHOWMAXIMIZED); }
 
@@ -752,14 +773,29 @@ public:
 	//!	@brief	Enables or disables mouse and keyboard input to the specified window.
 	void enableInput(bool bEnable) { ::EnableWindow(m_hWnd, bEnable); }
 
+	//!	@brief	Sets the parent window
+	void setParent(Window & parent) { ::SetParent(m_hWnd, parent.nativeHandle()); }
+
+	//!	@brief	Converts the screen coordinates to client coordinates.
+	Point screenToClient(Point pt) const { ::ScreenToClient(m_hWnd, &pt);	return pt; }
+
+	//!	@brief	Converts the client coordinates to screen coordinates.
+	Point clientToScreen(Point pt) const { ::ClientToScreen(m_hWnd, &pt);	return pt; }
+
 	//!	@brief	Creates a timer with the specified time-out value.
 	void setTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
 
 	//!	@brief	Draws a raw RGB bitmap onto the window at the specified position.
 	void drawBitmap(const Color * pixels, int width, int height, int dstX = 0, int dstY = 0);
 
+	//!	@brief	Sets the window opacity (0-255, requires ExStyle::Layered).
+	void setOpacity(Byte alpha) { ::SetLayeredWindowAttributes(m_hWnd, 0, alpha, LWA_ALPHA); }
+
+	//!	@brief	Sets the window to stay on top of others.
+	void setAlwaysOnTop(bool enable) { ::SetWindowPos(m_hWnd, enable ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); }
+
 	//!	@brief	Requests the window to be redrawn.
-	void requestRedraw(const RECT * rect = nullptr, bool eraseBackground = false)
+	void requestRedraw(const Rect * rect = nullptr, bool eraseBackground = false)
 	{
 		::InvalidateRect(m_hWnd, rect, eraseBackground);
 		::UpdateWindow(m_hWnd);
@@ -905,7 +941,7 @@ private:
 	template<bool EraseTitleBar> struct NativeClass;
 
 	//!	@brief	Window procedure for message dispatching.
-	template<bool EraseTitleBar> static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	template<bool EraseTitleBar> static Result procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 public:
 
@@ -917,27 +953,27 @@ public:
 	 *				window procedure¡¯s result ¡ª meaning the event is considered handled and `DefWindowProc` will **not** be called.
 	 *	@details	If the callback returns `-1`, the message will be forwarded to `DefWindowProc` for default processing.
 	 */
-	std::function<LRESULT(wchar_t)>											onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
-	std::function<LRESULT()>												onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
-	std::function<LRESULT()>												onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
-	std::function<LRESULT()>												onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
-	std::function<LRESULT()>												onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
-	std::function<LRESULT()>												onPaint;			// Called when the window needs to be repainted (WM_PAINT).
-	std::function<LRESULT()>												onTimer;			// Called when a timer event occurs (WM_TIMER).
-	std::function<LRESULT()>												onClose;			// Called when the window is about to close (WM_CLOSE).
-	std::function<LRESULT(int w, int h)>									onResize;			// Called when the window is resized (WM_SIZE).
-	std::function<LRESULT(int x, int y)>									onMove;				// Called when the window is moved (WM_MOVE).
-	std::function<LRESULT(int x, int y, Flags<MouseState>)>					onMouseMove;		// Called when the mouse is moved (WM_MOUSEMOVE).
-	std::function<LRESULT(int dx, int dy, Flags<MouseState>)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
-	std::function<LRESULT(MouseButton, MouseAction, Flags<MouseState>)>		onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
-	std::function<LRESULT(Key, KeyAction)>									onKeyboardPress;	// Called when a key is pressed, released, or repeated (WM_KEYDOWN/WM_KEYUP).
+	std::function<Result(wchar_t)>											onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
+	std::function<Result()>													onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
+	std::function<Result()>													onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
+	std::function<Result()>													onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
+	std::function<Result()>													onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
+	std::function<Result()>													onPaint;			// Called when the window needs to be repainted (WM_PAINT).
+	std::function<Result()>													onTimer;			// Called when a timer event occurs (WM_TIMER).
+	std::function<Result()>													onClose;			// Called when the window is about to close (WM_CLOSE).
+	std::function<Result(int w, int h)>										onResize;			// Called when the window is resized (WM_SIZE).
+	std::function<Result(int x, int y)>										onMove;				// Called when the window is moved (WM_MOVE).
+	std::function<Result(int x, int y, Flags<MouseState>)>					onMouseMove;		// Called when the mouse is moved (WM_MOUSEMOVE).
+	std::function<Result(int dx, int dy, Flags<MouseState>)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
+	std::function<Result(MouseButton, MouseAction, Flags<MouseState>)>		onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
+	std::function<Result(Key, KeyAction)>									onKeyboardPress;	// Called when a key is pressed, released, or repeated (WM_KEYDOWN/WM_KEYUP).
 	std::function<HitTestResult(int x, int y)>								onHitTest;			// Called when WM_NCHITTEST is received, should return the hit-test result based on cursor position.
 
 private:
 
 	HWND				m_hWnd = nullptr;
 	Style				m_style = Style::Overlapped;
-	RECT				m_bounds = { 100, 100, 800, 600 };
+	Rect				m_bounds = { 100, 100, 800, 600 };
 #ifdef UNICODE
 	string_type			m_title = L"EasyWin32";
 #else
@@ -968,7 +1004,7 @@ private:
  *		- On `WM_DESTROY`, a quit message is posted to end the application loop.
  *		- For other messages, the stored Window pointer is used to dispatch events to registered callbacks (e.g., onClose, onResize, onMouseClick).
  */
-template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+template<bool EraseTitleBar> easywin32::Result easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_CREATE)		//	Retrieve the use pointer
 	{
@@ -1018,7 +1054,7 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 
 	if (window != nullptr)
 	{
-		LRESULT result = -1;
+		Result result = -1;
 
 		//	Dispatch standard messages to callbacks
 		switch (uMsg)
@@ -1037,7 +1073,7 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 
 			case WM_MOVE:			if (window->onMove)				result = window->onMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));				break;
 			case WM_SIZE:			if (window->onResize)			result = window->onResize(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));				break;
-			case WM_NCHITTEST:		if (window->onHitTest)			result = (LRESULT)window->onHitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));	break;
+			case WM_NCHITTEST:		if (window->onHitTest)			result = (Result)window->onHitTest(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));		break;
 
 			case WM_KEYUP:			if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), KeyAction::Release);		break;
 			case WM_SYSKEYUP:		if (window->onKeyboardPress)	result = window->onKeyboardPress(static_cast<Key>(wParam), KeyAction::Release);		break;
