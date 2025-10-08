@@ -953,7 +953,9 @@ public:
 	 *				window procedure¡¯s result ¡ª meaning the event is considered handled and `DefWindowProc` will **not** be called.
 	 *	@details	If the callback returns `-1`, the message will be forwarded to `DefWindowProc` for default processing.
 	 */
+	std::function<Result(HWND, UINT, WPARAM, LPARAM)>						forwardMessage;		// Called before default message handling.
 	std::function<Result(wchar_t)>											onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
+	std::function<Result(string_type)>										onDropFile;			// Called when files are dropped onto the window (WM_DROPFILES), requires ExStyle::AcceptFiles.
 	std::function<Result()>													onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
 	std::function<Result()>													onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
 	std::function<Result()>													onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
@@ -961,8 +963,9 @@ public:
 	std::function<Result()>													onPaint;			// Called when the window needs to be repainted (WM_PAINT).
 	std::function<Result()>													onTimer;			// Called when a timer event occurs (WM_TIMER).
 	std::function<Result()>													onClose;			// Called when the window is about to close (WM_CLOSE).
-	std::function<Result(int w, int h)>										onResize;			// Called when the window is resized (WM_SIZE).
+	std::function<Result()>													onMouseLeave;		// Called when the mouse leave the client area (WM_MOUSELEAVE).
 	std::function<Result(int x, int y)>										onMove;				// Called when the window is moved (WM_MOVE).
+	std::function<Result(int w, int h)>										onResize;			// Called when the window is resized (WM_SIZE).
 	std::function<Result(int x, int y, Flags<MouseState>)>					onMouseMove;		// Called when the mouse is moved (WM_MOUSEMOVE).
 	std::function<Result(int dx, int dy, Flags<MouseState>)>				onWheelScroll;		// Called when the mouse wheel is scrolled (WM_MOUSEWHEEL / WM_MOUSEHWHEEL).
 	std::function<Result(MouseButton, MouseAction, Flags<MouseState>)>		onMouseClick;		// Called when a mouse button event occurs (down, up, or double click).
@@ -1056,6 +1059,15 @@ template<bool EraseTitleBar> easywin32::Result easywin32::Window::procedure(HWND
 	{
 		Result result = -1;
 
+		// Forward messages to the user-defined callback first.
+		if (window->forwardMessage)
+		{
+			result = window->forwardMessage(hWnd, uMsg, wParam, lParam);
+
+			if (result != -1)
+				return result;
+		}
+
 		//	Dispatch standard messages to callbacks
 		switch (uMsg)
 		{
@@ -1064,6 +1076,7 @@ template<bool EraseTitleBar> easywin32::Result easywin32::Window::procedure(HWND
 			case WM_PAINT:			if (window->onPaint)			result = window->onPaint();			break;
 			case WM_SETFOCUS:		if (window->onSetFocus)			result = window->onSetFocus();		break;
 			case WM_KILLFOCUS:		if (window->onKillFocus)		result = window->onKillFocus();		break;
+			case WM_MOUSELEAVE:		if (window->onMouseLeave)		result = window->onMouseLeave();	break;
 			case WM_EXITSIZEMOVE:	if (window->onExitMove)			result = window->onExitMove();		break;
 			case WM_ENTERSIZEMOVE:	if (window->onEnterMove)		result = window->onEnterMove();		break;
 
@@ -1115,6 +1128,33 @@ template<bool EraseTitleBar> easywin32::Result easywin32::Window::procedure(HWND
 					{
 						result = window->onMouseClick(MouseButton::XButton2, action, static_cast<MouseState>(wParam & 127));
 					}
+				}
+
+				break;
+			}
+			case WM_DROPFILES:
+			{
+				if (window->onDropFile)
+				{
+					HDROP hDrop = (HDROP)wParam;
+
+					UINT count = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+
+					for (UINT i = 0; i < count; ++i)
+					{
+					#ifdef UNICODE
+						wchar_t filePath[MAX_PATH];
+					#else
+						char filePath[MAX_PATH];
+					#endif
+						DragQueryFile(hDrop, i, filePath, MAX_PATH);
+
+						window->onDropFile(filePath);
+					}
+
+					::DragFinish(hDrop);
+
+					return 0;
 				}
 
 				break;
