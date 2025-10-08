@@ -37,8 +37,7 @@ int main()
 {
 	EzWindow window;
 	window.setTitle("EasyWin32");
-	window.setStyle(EzStyle::Overlapped);
-	window.open();
+	window.open(EzStyle::OverlappedWindow);
 	window.show();
 
 	std::vector<EzColor> image(1920 * 1080, EzColor{ 100, 200, 255 });

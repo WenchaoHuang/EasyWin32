@@ -26,6 +26,10 @@ set(TARGET_NAME EasyWin32)
 # Project name
 project(${TARGET_NAME} LANGUAGES CXX)
 
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Organize targets into folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

@@ -32,18 +32,12 @@
 #include <functional>
 
 /*********************************************************************************
-***************************    Forward Declarations    ***************************
+********************************    EasyWin32    *********************************
 *********************************************************************************/
 
 namespace easywin32
 {
 	class Window;
-
-	enum class Style
-	{
-		Popup,
-		Overlapped,
-	};
 
 #ifdef UNICODE
 	using string_type = std::wstring;
@@ -136,6 +130,88 @@ namespace easywin32
 	{																			\
 		return ~Flags<EnumType>(v);												\
 	}
+
+	/*****************************************************************************
+	********************************    Style    *********************************
+	*****************************************************************************/
+
+	/**
+	 *	@brief	Standard window styles
+	 *	@see	https://learn.microsoft.com/en-us/windows/win32/winmsg/window-styles
+	 */
+	enum class Style : DWORD
+	{
+		Overlapped			= WS_OVERLAPPED,			//!< Standard top-level overlapped window
+		Popup				= WS_POPUP,					//!< Popup window (mutually exclusive with Overlapped/Child)
+		Child				= WS_CHILD,					//!< Child window (cannot have menu bar)
+		Minimize			= WS_MINIMIZE,				//!< Initially minimized
+		Visible				= WS_VISIBLE,				//!< Initially visible
+		Disabled			= WS_DISABLED,				//!< Initially disabled
+		ClipSiblings		= WS_CLIPSIBLINGS,			//!< Clips child windows relative to each other
+		ClipChildren		= WS_CLIPCHILDREN,			//!< Excludes child areas when drawing parent
+		Maximize			= WS_MAXIMIZE,				//!< Initially maximized
+		Border				= WS_BORDER,				//!< Thin border
+		DialogFrame			= WS_DLGFRAME,				//!< Dialog-style border (cannot have title bar)
+		VScroll				= WS_VSCROLL,				//!< Vertical scroll bar
+		HScroll				= WS_HSCROLL,				//!< Horizontal scroll bar
+		SysMenu				= WS_SYSMENU,				//!< System menu (requires Caption)
+		ThickFrame			= WS_THICKFRAME,			//!< Resizable border (size box)
+		Group				= WS_GROUP,					//!< First control in a group (dialog navigation)
+		TabStop				= WS_TABSTOP,				//!< Control can be focused using Tab key
+		MinimizeBox			= WS_MINIMIZEBOX,			//!< Minimize button (requires SysMenu)
+		MaximizeBox			= WS_MAXIMIZEBOX,			//!< Maximize button (requires SysMenu)
+		Caption				= WS_CAPTION,				//!< Title bar (includes WS_BORDER)
+		OverlappedWindow	= WS_OVERLAPPEDWINDOW,		//!< Common top-level window (Overlapped + Caption + SysMenu + ThickFrame + Min/Max boxes)
+		PopupWindow			= WS_POPUPWINDOW,			//!< Popup + Border + SysMenu
+		SizeBox				= WS_SIZEBOX,				//!< Same as WS_THICKFRAME
+		Tiled				= WS_TILED,					//!< Same as WS_OVERLAPPED
+		TiledWindow			= WS_TILEDWINDOW			//!< Same as WS_OVERLAPPEDWINDOW
+	};
+
+	//!	@brief	Enables bitwise operators (|, &, ~).
+	EZWIN32_ENABLE_ENUM_FLAGS(Style);
+
+	/*****************************************************************************
+	*******************************    ExStyle    ********************************
+	*****************************************************************************/
+
+	/**
+	 *	@brief	Extended window styles.
+	 *	@see	https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles
+	 */
+	enum class ExStyle : DWORD
+	{
+		AcceptFiles				= WS_EX_ACCEPTFILES,			//!< Accepts drag-drop files.
+		AppWindow				= WS_EX_APPWINDOW,				//!< Forces top-level window onto taskbar when visible.
+		ClientEdge				= WS_EX_CLIENTEDGE,				//!< Border with sunken edge.
+		Composited				= WS_EX_COMPOSITED,				//!< Paints descendants bottom-to-top with double-buffering.
+		ContextHelp				= WS_EX_CONTEXTHELP,			//!< Title bar question mark for help.
+		ControlParent			= WS_EX_CONTROLPARENT,			//!< Enables dialog navigation for child windows.
+		DlgModalFrame			= WS_EX_DLGMODALFRAME,			//!< Double border, optional title bar with WS_CAPTION.
+		Layered					= WS_EX_LAYERED,				//!< Layered window, supports top-level and child windows (Windows 8+).
+		LayoutRtl				= WS_EX_LAYOUTRTL,				//!< Right-edge origin for right-to-left languages.
+		Left					= WS_EX_LEFT,					//!< Generic left-aligned properties (default).
+		LeftScrollBar			= WS_EX_LEFTSCROLLBAR,			//!< Left-side scroll bar for right-to-left languages.
+		LtrReading				= WS_EX_LTRREADING,				//!< Left-to-right text reading order (default).
+		MdiChild				= WS_EX_MDICHILD,				//!< MDI child window.
+		NoActivate				= WS_EX_NOACTIVATE,				//!< Non-foreground window, not on taskbar by default.
+		NoInheritLayout			= WS_EX_NOINHERITLAYOUT,		//!< Does not pass layout to child windows.
+		NoParentNotify			= WS_EX_NOPARENTNOTIFY,			//!< No WM_PARENTNOTIFY for child creation/destruction.
+		NoRedirectionBitmap		= WS_EX_NOREDIRECTIONBITMAP,	//!< No redirection surface rendering.
+		OverlappedWindow		= WS_EX_OVERLAPPEDWINDOW,		//!< Overlapped window (WINDOWEDGE | CLIENTEDGE).
+		PaletteWindow			= WS_EX_PALETTEWINDOW,			//!< Palette window (WINDOWEDGE | TOOLWINDOW | TOPMOST).
+		Right					= WS_EX_RIGHT,					//!< Right-aligned properties for right-to-left languages.
+		RightScrollBar			= WS_EX_RIGHTSCROLLBAR,			//!< Right-side scroll bar (default).
+		RtlReading				= WS_EX_RTLREADING,				//!< Right-to-left text reading order for supported languages.
+		StaticEdge				= WS_EX_STATICEDGE,				//!< 3D border for non-interactive items.
+		ToolWindow				= WS_EX_TOOLWINDOW,				//!< Floating toolbar, no taskbar/ALT+TAB.
+		TopMost					= WS_EX_TOPMOST,				//!< Stays above non-topmost windows.
+		Transparent				= WS_EX_TRANSPARENT,			//!< Delays painting until siblings are painted.
+		WindowEdge				= WS_EX_WINDOWEDGE,				//!< Border with raised edge.
+	};
+
+	//!	@brief	Enables bitwise operators (|, &, ~).
+	EZWIN32_ENABLE_ENUM_FLAGS(ExStyle);
 
 	/*****************************************************************************
 	*********************************    Key    **********************************
@@ -571,11 +647,16 @@ namespace easywin32
 	}
 }
 
+/*********************************************************************************
+********************************    Type alias    ********************************
+*********************************************************************************/
+
 using EzKey = easywin32::Key;
-using EzStyle = easywin32::Style;
 using EzColor = easywin32::Color;
+using EzStyle = easywin32::Style;
 using EzWindow = easywin32::Window;
 using EzCursor = easywin32::Cursor;
+using EzExStyle = easywin32::ExStyle;
 using EzKeyAction = easywin32::KeyAction;
 using EzMouseState = easywin32::MouseState;
 using EzMouseAction = easywin32::MouseAction;
@@ -602,6 +683,8 @@ public:
 
 	void operator=(const Window&) = delete;
 
+	Window(string_type title) { this->setTitle(title); }
+
 	~Window() { this->close(); }
 
 public:
@@ -609,7 +692,7 @@ public:
 	/**
 	 *	@brief			
 	 */
-	void open();
+	void open(Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
 
 
 	/**
@@ -720,8 +803,6 @@ public:
 
 public:
 
-	void setStyle(Style style);
-
 	void setPos(int left, int top, int right, int bottom);
 
 public:
@@ -821,10 +902,10 @@ public:
 
 private:
 
-	RECT adjustWindowRect() const;
+	template<bool EraseTitleBar> struct NativeClass;
 
-	//!	@brief	Static window procedure for message dispatching.
-	static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	//!	@brief	Window procedure for message dispatching.
+	template<bool EraseTitleBar> static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 public:
 
@@ -887,7 +968,7 @@ private:
  *		- On `WM_DESTROY`, a quit message is posted to end the application loop.
  *		- For other messages, the stored Window pointer is used to dispatch events to registered callbacks (e.g., onClose, onResize, onMouseClick).
  */
-LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_CREATE)		//	Retrieve the use pointer
 	{
@@ -899,8 +980,29 @@ LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 	}
 	else if (uMsg == WM_NCCALCSIZE)
 	{
-	//	NCCALCSIZE_PARAMS * sizeParams = (NCCALCSIZE_PARAMS*)lParam;
+		if constexpr (EraseTitleBar)
+		{
+			constexpr int frameSize = 8;	//	win32 default size for drag
 
+			NCCALCSIZE_PARAMS * pParams = (NCCALCSIZE_PARAMS*)lParam;
+
+			if (::IsZoomed(hWnd))
+			{
+				pParams->rgrc[0].top += frameSize;
+				pParams->rgrc[0].left += frameSize;
+				pParams->rgrc[0].right -= frameSize;
+				pParams->rgrc[0].bottom -= frameSize;
+			}
+			else
+			{
+				pParams->rgrc[0].top += 0;				//	skip title bar
+				pParams->rgrc[0].left += frameSize;
+				pParams->rgrc[0].right -= frameSize;
+				pParams->rgrc[0].bottom -= frameSize;
+			}
+
+			return 0;
+		}
 	}
 	else if (uMsg == WM_DESTROY)	//	Handle window destruction
 	{
@@ -992,63 +1094,89 @@ LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 }
 
 
-void easywin32::Window::open()
+/**
+ *	@brief	Window class wrapper for Win32 window registration.
+ *
+ *	This struct inherits from `WNDCLASSEX` and is used to register a single
+ *	window class with the Win32 API. The class is automatically registered
+ *	upon construction and unregistered upon destruction. This ensures that
+ *	the registration occurs only once during the application's lifetime.
+ */
+template<bool EraseTitleBar> struct easywin32::Window::NativeClass : public WNDCLASSEX
+{
+	bool isRegistered;
+
+	NativeClass() : isRegistered(false)
+	{
+		cbSize			= sizeof(WNDCLASSEXW);
+		style			= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+		lpfnWndProc		= Window::procedure<EraseTitleBar>;
+		cbClsExtra		= 0;
+		cbWndExtra		= 0;
+		hInstance		= ::GetModuleHandle(NULL);
+		hIcon			= ::LoadIcon(NULL, IDI_APPLICATION);
+		hCursor			= NULL;
+		hbrBackground	= (HBRUSH)::GetStockObject(NULL_BRUSH);
+		lpszMenuName	= NULL;
+		hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
+	#ifdef UNICODE
+		lpszClassName	= L"EasyWin32";
+	#else
+		lpszClassName	= "EasyWin32";
+	#endif
+		isRegistered = ::RegisterClassEx(this);
+	}
+
+	~NativeClass()
+	{
+		if (isRegistered)
+		{
+			::UnregisterClass(lpszClassName, hInstance);
+		}
+	}
+};
+
+
+void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
 {
 	if (::IsWindow(m_hWnd) != 0)		return;
 
-	/**
-	 *	@brief	Static window class wrapper for Win32 window registration.
-	 * 
-	 *	This struct inherits from `WNDCLASSEX` and is used to register a single
-	 *	window class with the Win32 API. The class is automatically registered
-	 *	upon construction and unregistered upon destruction. This ensures that
-	 *	the registration occurs only once during the application's lifetime.
-	 */
-	static struct WindowClass : public WNDCLASSEX
+	if (styleFlags.has(Style::ThickFrame) && !styleFlags.has(Style::Caption))
 	{
-		bool isRegistered;
+		static NativeClass<true>	s_win32Class;
 
-		WindowClass() : isRegistered(false)
+		assert(s_win32Class.isRegistered);
+
+		if (s_win32Class.isRegistered)
 		{
-			cbSize			= sizeof(WNDCLASSEXW);
-			style			= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-			lpfnWndProc		= Window::procedure;
-			cbClsExtra		= 0;
-			cbWndExtra		= 0;
-			hInstance		= ::GetModuleHandle(NULL);
-			hIcon			= ::LoadIcon(NULL, IDI_APPLICATION);
-			hCursor			= NULL;
-			hbrBackground	= (HBRUSH)::GetStockObject(NULL_BRUSH);
-			lpszMenuName	= NULL;
-		#ifdef UNICODE
-			lpszClassName	= L"EasyWin32";
-		#else
-			lpszClassName	= "EasyWin32";
-		#endif
-			hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
-			isRegistered	= ::RegisterClassEx(this);
+			auto rect = m_bounds;
+
+			constexpr int frameSize = 8;
+			rect.bottom += frameSize;
+			rect.right += frameSize;
+			rect.left -= frameSize;
+
+			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
+									  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
+									  this /* Additional application data */);
 		}
-
-		~WindowClass()
-		{
-			if (isRegistered)
-			{
-				::UnregisterClass(lpszClassName, hInstance);
-			}
-		}
-	} s_win32Class;
-
-	assert(s_win32Class.isRegistered);
-
-	if (s_win32Class.isRegistered)
+	}
+	else
 	{
-		auto rect = this->adjustWindowRect();
+		static NativeClass<false>	s_win32Class;
 
-		DWORD dwStyle = (m_style == Style::Popup) ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
+		assert(s_win32Class.isRegistered);
 
-		m_hWnd = ::CreateWindowEx(WS_EX_APPWINDOW, s_win32Class.lpszClassName, m_title.c_str(), dwStyle,
-								  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
-								  this /* Additional application data */);
+		if (s_win32Class.isRegistered)
+		{
+			auto rect = m_bounds;
+
+			::AdjustWindowRectEx(&rect, styleFlags, FALSE, exStyleFlags);
+
+			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
+									  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
+									  this /* Additional application data */);
+		}
 	}
 }
 
@@ -1095,27 +1223,6 @@ void easywin32::Window::drawBitmap(const Color * pixels, int width, int height, 
 
 	// End painting
 	EndPaint(m_hWnd, &ps);
-}
-
-
-RECT easywin32::Window::adjustWindowRect() const
-{
-	auto rect = m_bounds;
-
-	DWORD dwStyle = (m_style == Style::Popup) ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
-
-	::AdjustWindowRectEx(&rect, dwStyle, FALSE, WS_EX_APPWINDOW);
-
-	return rect;
-}
-
-
-void easywin32::Window::setStyle(Style style)
-{
-	if (m_style != style)
-	{
-		m_style = style;
-	}
 }
 
 #endif
