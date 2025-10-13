@@ -76,7 +76,7 @@ void mouseEventTest(EzWindow & window)
 	// Main event loop
 	while (window.isOpen() && !testFinished)
 	{
-		window.waitProcessEvent();
+		window.waitEvent();
 	}
 
 	printf("Mouse event test finished.\n\n");

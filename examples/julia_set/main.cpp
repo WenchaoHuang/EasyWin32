@@ -112,7 +112,7 @@ int main()
 	
 	while (window.isOpen())
 	{
-		while (window.processEvent()) {}
+		window.processEvents();
 
 		////////////////////////////////////////////////////////////
 

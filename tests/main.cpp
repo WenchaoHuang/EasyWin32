@@ -68,7 +68,7 @@ int main()
 	//	Main loop
 	while (window.isOpen())
 	{
-		if (!window.processEvent())
+		if (!window.processEvents())
 		{
 			using namespace std::chrono_literals;
 
