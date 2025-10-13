@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  *	Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -57,9 +57,9 @@ namespace easywin32
 	//!	@brief	Represents an RGB color with 8-bit channels.
 	struct Color
 	{
-		uint8_t	r;	//!< Red channel component (0¨C255)
-		uint8_t g;	//!< Green channel component (0¨C255)
-		uint8_t b;	//!< Blue channel component (0¨C255)
+		uint8_t	r;	//!< Red channel component (0â€“255)
+		uint8_t g;	//!< Green channel component (0â€“255)
+		uint8_t b;	//!< Blue channel component (0â€“255)
 	};
 
 	/*****************************************************************************
@@ -649,6 +649,36 @@ namespace easywin32
 			default:							return "HitTestResult::Unknown";
 		}
 	}
+
+	/*****************************************************************************
+	****************************    ThreadWindows    *****************************
+	*****************************************************************************/
+
+	/**
+	 *	@brief		Namespace for handling messages across all windows in the current thread.
+	 *	@details	Provides utility functions for processing and waiting for messages
+	 *				in the message queue of the current thread, affecting all associated windows.
+	 */
+	namespace ThreadWindows
+	{
+		/**
+		 * @brief      Waits for and processes the next message for all windows belonging to the current thread.
+		 * @details    This function blocks until an message is available in the message queue of the
+		 *             current thread (regardless of which window it belongs to).
+		 * @note       Unlike per-window message processing, passing `nullptr` as `hWnd` allows
+		 *             messages for any window in this thread to be retrieved.
+		 */
+		void waitEvent();
+
+
+		/**
+		 * @brief      Processes all pending messages, if available.
+		 * @details    Uses `PeekMessage` to check for all messages in the queue for this thread.
+		 *             If an message exists, it is translated and dispatched to the window procedure.
+		 * @return     `true` if an message was processed, `false` if no messages were pending.
+		 */
+		bool processEvents();
+	}
 }
 
 /*********************************************************************************
@@ -673,6 +703,7 @@ using EzMouseButton = easywin32::MouseButton;
 using EzHitTestResult = easywin32::HitTestResult;
 using EzMouseStateFlags = easywin32::Flags<easywin32::MouseState>;
 template<typename EnumType> using EzFlags = easywin32::Flags<EnumType>;
+namespace EzThreadWindows = easywin32::ThreadWindows;
 
 /*********************************************************************************
 **********************************    Window    **********************************
@@ -849,92 +880,16 @@ public:
 	 *				It retrieves the message with `GetMessage`, translates it (e.g. converts virtual-key
 	 *				messages into character messages), and dispatches it to the window procedure.
 	 */
-	void waitProcessEvent()
-	{
-		if (m_hWnd != nullptr)	
-		{
-			MSG uMsg = {};
-
-			if (::GetMessage(&uMsg, m_hWnd, 0, 0))
-			{
-				::TranslateMessage(&uMsg);
-
-				::DispatchMessage(&uMsg);
-			};
-		}
-	}
+	void waitEvent();
 
 
 	/**
-	 *	@brief		Waits for and processes the next message for all windows belonging to the current thread.
-	 *	@details	This function blocks until a message is available in the message queue of the
-	 *				current thread (regardless of which window it belongs to).
-	 *	@note		Unlike per-window message processing, passing `nullptr` as `hWnd` allows
-	 *				messages for any window in this thread to be retrieved.
-	 */
-	static void waitProcessThreadWindows()
-	{
-		MSG uMsg = {};
-
-		if (::GetMessage(&uMsg, nullptr, 0, 0))
-		{
-			::TranslateMessage(&uMsg);
-
-			::DispatchMessage(&uMsg);
-		};
-	}
-
-
-	/**
-	 *	@brief		Processes a single pending window message, if available.
-	 *	@details	Uses `PeekMessage` to check for a message in the queue for this window.
+	 *	@brief		Processes all pending window messages, if available.
+	 *	@details	Uses `PeekMessage` to check for all messages in the queue for this window.
 	 *				If a message exists, it is translated and dispatched to the window procedure.
 	 *	@return		`true` if a message was processed, `false` if no messages were pending.
 	 */
-	bool processEvent()
-	{
-		if (m_hWnd != nullptr)
-		{
-			MSG uMsg = {};
-
-			if (::PeekMessage(&uMsg, m_hWnd, 0, 0, PM_REMOVE))
-			{
-				::TranslateMessage(&uMsg);
-
-				::DispatchMessage(&uMsg);
-
-				return true;
-			};
-		}
-
-		return false;
-	}
-
-
-	/**
-	 *	@brief		Processes a single pending message for all windows belonging to the current thread, if any.
-	 *	@details	Uses `PeekMessage` with hWnd set to `nullptr` to check for messages in the message queue
-	 *				of the current thread. If a message exists, it is translated and dispatched
-	 *				to the appropriate window procedure.
-	 *	@return		`true` if a message was processed, `false` if no messages were pending.
-	 *	@note		Unlike per-window processing, passing `nullptr` as `hWnd` retrieves messages
-	 *				for any window in this thread.
-	 */
-	static bool processThreadWindows()
-	{
-		MSG uMsg = {};
-
-		if (::PeekMessage(&uMsg, nullptr, 0, 0, PM_REMOVE))
-		{
-			::TranslateMessage(&uMsg);
-
-			::DispatchMessage(&uMsg);
-
-			return true;
-		};
-
-		return false;
-	}
+	bool processEvents();
 
 private:
 
@@ -950,7 +905,7 @@ public:
 	 *	@note		Each callback can optionally handle the event and determine whether it should be passed to the 
 	 *				system's default handler (`DefWindowProc`).
 	 *	@details	If the callback returns any value other than `-1`, that value will be returned directly as the 
-	 *				window procedure¡¯s result ¡ª meaning the event is considered handled and `DefWindowProc` will **not** be called.
+	 *				window procedureâ€™s result â€” meaning the event is considered handled and `DefWindowProc` will **not** be called.
 	 *	@details	If the callback returns `-1`, the message will be forwarded to `DefWindowProc` for default processing.
 	 */
 	std::function<Result(HWND, UINT, WPARAM, LPARAM)>						forwardMessage;		// Called before default message handling.
@@ -1299,6 +1254,101 @@ void easywin32::Window::drawBitmap(const Color * pixels, int width, int height, 
 
 	// End painting
 	EndPaint(m_hWnd, &ps);
+}
+
+
+/**
+ *	@brief		Waits for and processes the next window message.
+ *	@details	This call will block until a new message is available in the queue for this window.
+ *				It retrieves the message with `GetMessage`, translates it (e.g. converts virtual-key
+ *				messages into character messages), and dispatches it to the window procedure.
+ */
+void easywin32::Window::waitEvent()
+{
+	if (m_hWnd != nullptr)
+	{
+		MSG message = {};
+
+		if (::GetMessage(&message, m_hWnd, 0, 0))
+		{
+			::TranslateMessage(&message);
+
+			::DispatchMessage(&message);
+		};
+	}
+}
+
+
+/**
+ *	@brief		Processes all pending window messages, if available.
+ *	@details	Uses `PeekMessage` to check for all messages in the queue for this window.
+ *				If a message exists, it is translated and dispatched to the window procedure.
+ *	@return		`true` if a message was processed, `false` if no messages were pending.
+ */
+bool easywin32::Window::processEvents()
+{
+	bool hasEvent = false;
+
+	if (m_hWnd != nullptr)
+	{
+		MSG message = {};
+
+		while (::PeekMessage(&message, m_hWnd, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&message);
+
+			::DispatchMessage(&message);
+
+			hasEvent = true;
+		};
+	}
+
+	return hasEvent;
+}
+
+
+/**
+ *	@brief		Waits for and processes the next message for all windows belonging to the current thread.
+ *	@details	This function blocks until a message is available in the message queue of the
+ *				current thread (regardless of which window it belongs to).
+ *	@note		Unlike per-window message processing, passing `nullptr` as `hWnd` allows
+ *				messages for any window in this thread to be retrieved.
+ */
+void easywin32::ThreadWindows::waitEvent()
+{
+	MSG message = {};
+
+	if (::GetMessage(&message, nullptr, 0, 0))
+	{
+		::TranslateMessage(&message);
+
+		::DispatchMessage(&message);
+	};
+}
+
+
+/**
+ * @brief      Processes all pending messages, if available.
+ * @details    Uses `PeekMessage` to check for all messages in the queue for this thread.
+ *             If an message exists, it is translated and dispatched to the window procedure.
+ * @return     `true` if an event was processed, `false` if no messages were pending.
+ */
+bool easywin32::ThreadWindows::processEvents()
+{
+	MSG message = {};
+
+	bool hasEvent = false;
+
+	while (::PeekMessage(&message, nullptr, 0, 0, PM_REMOVE))
+	{
+		::TranslateMessage(&message);
+
+		::DispatchMessage(&message);
+
+		hasEvent = true;
+	};
+
+	return hasEvent;
 }
 
 #endif

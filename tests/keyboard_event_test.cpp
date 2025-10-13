@@ -52,7 +52,7 @@ void keyboardEventTest(EzWindow & window)
 	// Main event loop
 	while (window.isOpen() && !testFinished)
 	{
-		window.waitProcessEvent();
+		window.waitEvent();
 	}
 
 	printf("Keyboard event test finished.\n\n");
