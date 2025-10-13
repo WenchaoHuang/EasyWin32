@@ -755,7 +755,7 @@ public:
 	bool isMaximized() const { return ::IsZoomed(m_hWnd); }
 
 	//!	@brief	Whether the windows is focused.
-	bool IsFocused() const { return ::GetFocus() == m_hWnd; }
+	bool isFocused() const { return ::GetFocus() == m_hWnd; }
 
 	//!	@brief	Checks if the window is currently marked as visible.
 	bool isVisible() const { return ::IsWindowVisible(m_hWnd) != FALSE; }
