@@ -116,12 +116,16 @@ namespace easywin32
 		constexpr void clear() noexcept { flags = 0; }
 	};
 
+	/*****************************************************************************
+	**********************    EZWIN32_ENABLE_ENUM_FLAGS    ***********************
+	*****************************************************************************/
+
 	/**
 	 *	@brief		Enables bitwise operators (|, &, ~) for a strongly-typed enum.
 	 *	@details	This macro defines overloaded operators that allow using the enum as
 	 *				bit flags through the `Flags<EnumType>` wrapper.
 	 */
-#define EZWIN32_ENABLE_ENUM_FLAGS(EnumType)										\
+	#define EZWIN32_ENABLE_ENUM_FLAGS(EnumType)									\
 																				\
 	constexpr Flags<EnumType> operator|(EnumType lhs, EnumType rhs) noexcept	\
 	{																			\
@@ -135,6 +139,19 @@ namespace easywin32
 	{																			\
 		return ~Flags<EnumType>(v);												\
 	}
+
+	/*****************************************************************************
+	*************************    EZWIN32_CASE_TO_STR    **************************
+	*****************************************************************************/
+
+	/**
+	 *	@brief		Macro to convert an enum value to its string representation in a switch case.
+	 *	@details	Simplifies switch statements by generating a case branch that returns the stringified
+	 *				form of the enum value (e.g., `Key::A` to `"Key::A"`). Used in `to_string` functions
+	 *				for debugging or logging purposes.
+	 * @param[in]	x - The enum value to convert to a string.
+	 */
+	#define EZWIN32_CASE_TO_STR(x)		case x: return #x
 
 	/*****************************************************************************
 	********************************    Style    *********************************
@@ -364,61 +381,140 @@ namespace easywin32
 	{
 		switch (key)
 		{
-			// Letters
-			case Key::A: return "Key::A"; case Key::B: return "Key::B"; case Key::C: return "Key::C"; case Key::D: return "Key::D";
-			case Key::E: return "Key::E"; case Key::F: return "Key::F"; case Key::G: return "Key::G"; case Key::H: return "Key::H";
-			case Key::I: return "Key::I"; case Key::J: return "Key::J"; case Key::K: return "Key::K"; case Key::L: return "Key::L";
-			case Key::M: return "Key::M"; case Key::N: return "Key::N"; case Key::O: return "Key::O"; case Key::P: return "Key::P";
-			case Key::Q: return "Key::Q"; case Key::R: return "Key::R"; case Key::S: return "Key::S"; case Key::T: return "Key::T";
-			case Key::U: return "Key::U"; case Key::V: return "Key::V"; case Key::W: return "Key::W"; case Key::X: return "Key::X";
-			case Key::Y: return "Key::Y"; case Key::Z: return "Key::Z";
+			EZWIN32_CASE_TO_STR(Key::A);
+			EZWIN32_CASE_TO_STR(Key::B);
+			EZWIN32_CASE_TO_STR(Key::C);
+			EZWIN32_CASE_TO_STR(Key::D);
+			EZWIN32_CASE_TO_STR(Key::E);
+			EZWIN32_CASE_TO_STR(Key::F);
+			EZWIN32_CASE_TO_STR(Key::G);
+			EZWIN32_CASE_TO_STR(Key::H);
+			EZWIN32_CASE_TO_STR(Key::I);
+			EZWIN32_CASE_TO_STR(Key::J);
+			EZWIN32_CASE_TO_STR(Key::K);
+			EZWIN32_CASE_TO_STR(Key::L);
+			EZWIN32_CASE_TO_STR(Key::M);
+			EZWIN32_CASE_TO_STR(Key::N);
+			EZWIN32_CASE_TO_STR(Key::O);
+			EZWIN32_CASE_TO_STR(Key::P);
+			EZWIN32_CASE_TO_STR(Key::Q);
+			EZWIN32_CASE_TO_STR(Key::R);
+			EZWIN32_CASE_TO_STR(Key::S);
+			EZWIN32_CASE_TO_STR(Key::T);
+			EZWIN32_CASE_TO_STR(Key::U);
+			EZWIN32_CASE_TO_STR(Key::V);
+			EZWIN32_CASE_TO_STR(Key::W);
+			EZWIN32_CASE_TO_STR(Key::X);
+			EZWIN32_CASE_TO_STR(Key::Y);
+			EZWIN32_CASE_TO_STR(Key::Z);
 
-			// Numbers
-			case Key::Num0: return "Key::Num0"; case Key::Num1: return "Key::Num1"; case Key::Num2: return "Key::Num2"; case Key::Num3: return "Key::Num3";
-			case Key::Num4: return "Key::Num4"; case Key::Num5: return "Key::Num5"; case Key::Num6: return "Key::Num6"; case Key::Num7: return "Key::Num7";
-			case Key::Num8: return "Key::Num8"; case Key::Num9: return "Key::Num9";
+			EZWIN32_CASE_TO_STR(Key::Num0);
+			EZWIN32_CASE_TO_STR(Key::Num1);
+			EZWIN32_CASE_TO_STR(Key::Num2);
+			EZWIN32_CASE_TO_STR(Key::Num3);
+			EZWIN32_CASE_TO_STR(Key::Num4);
+			EZWIN32_CASE_TO_STR(Key::Num5);
+			EZWIN32_CASE_TO_STR(Key::Num6);
+			EZWIN32_CASE_TO_STR(Key::Num7);
+			EZWIN32_CASE_TO_STR(Key::Num8);
+			EZWIN32_CASE_TO_STR(Key::Num9);
 
-			// Function keys
-			case Key::F1: return "Key::F1"; case Key::F2: return "Key::F2"; case Key::F3: return "Key::F3"; case Key::F4: return "Key::F4";
-			case Key::F5: return "Key::F5"; case Key::F6: return "Key::F6"; case Key::F7: return "Key::F7"; case Key::F8: return "Key::F8";
-			case Key::F9: return "Key::F9"; case Key::F10: return "Key::F10"; case Key::F11: return "Key::F11"; case Key::F12: return "Key::F12";
-			case Key::F13: return "Key::F13"; case Key::F14: return "Key::F14"; case Key::F15: return "Key::F15"; case Key::F16: return "Key::F16";
-			case Key::F17: return "Key::F17"; case Key::F18: return "Key::F18"; case Key::F19: return "Key::F19"; case Key::F20: return "Key::F20";
-			case Key::F21: return "Key::F21"; case Key::F22: return "Key::F22"; case Key::F23: return "Key::F23"; case Key::F24: return "Key::F24";
+			EZWIN32_CASE_TO_STR(Key::F1);
+			EZWIN32_CASE_TO_STR(Key::F2);
+			EZWIN32_CASE_TO_STR(Key::F3);
+			EZWIN32_CASE_TO_STR(Key::F4);
+			EZWIN32_CASE_TO_STR(Key::F5);
+			EZWIN32_CASE_TO_STR(Key::F6);
+			EZWIN32_CASE_TO_STR(Key::F7);
+			EZWIN32_CASE_TO_STR(Key::F8);
+			EZWIN32_CASE_TO_STR(Key::F9);
+			EZWIN32_CASE_TO_STR(Key::F10);
+			EZWIN32_CASE_TO_STR(Key::F11);
+			EZWIN32_CASE_TO_STR(Key::F12);
+			EZWIN32_CASE_TO_STR(Key::F13);
+			EZWIN32_CASE_TO_STR(Key::F14);
+			EZWIN32_CASE_TO_STR(Key::F15);
+			EZWIN32_CASE_TO_STR(Key::F16);
+			EZWIN32_CASE_TO_STR(Key::F17);
+			EZWIN32_CASE_TO_STR(Key::F18);
+			EZWIN32_CASE_TO_STR(Key::F19);
+			EZWIN32_CASE_TO_STR(Key::F20);
+			EZWIN32_CASE_TO_STR(Key::F21);
+			EZWIN32_CASE_TO_STR(Key::F22);
+			EZWIN32_CASE_TO_STR(Key::F23);
+			EZWIN32_CASE_TO_STR(Key::F24);
 
-			// Navigation and control
-			case Key::Up: return "Key::Up"; case Key::Down: return "Key::Down"; case Key::Left: return "Key::Left"; case Key::Right: return "Key::Right";
-			case Key::Home: return "Key::Home"; case Key::End: return "Key::End"; case Key::PageUp: return "Key::PageUp"; case Key::PageDown: return "Key::PageDown";
-			case Key::Insert: return "Key::Insert"; case Key::Delete: return "Key::Delete";
+			EZWIN32_CASE_TO_STR(Key::Pause);
+			EZWIN32_CASE_TO_STR(Key::ScrollLock);
+			EZWIN32_CASE_TO_STR(Key::PrintScreen);
 
-			// System keys
-			case Key::Escape: return "Key::Escape"; case Key::Enter: return "Key::Enter"; case Key::Space: return "Key::Space";
-			case Key::Tab: return "Key::Tab"; case Key::BackSpace: return "Key::BackSpace"; case Key::Shift: return "Key::Shift";
-			case Key::Control: return "Key::Control"; case Key::Alt: return "Key::Alt"; case Key::CapLock: return "Key::CapLock";
-			case Key::Pause: return "Key::Pause"; case Key::ScrollLock: return "Key::ScrollLock"; case Key::PrintScreen: return "Key::PrintScreen";
-			case Key::LeftWin: return "Key::LeftWin"; case Key::RightWin: return "Key::RightWin"; case Key::Apps: return "Key::Apps";
+			EZWIN32_CASE_TO_STR(Key::End);
+			EZWIN32_CASE_TO_STR(Key::Home);
+			EZWIN32_CASE_TO_STR(Key::Insert);
+			EZWIN32_CASE_TO_STR(Key::Delete);
+			EZWIN32_CASE_TO_STR(Key::PageUp);
+			EZWIN32_CASE_TO_STR(Key::PageDown);
 
-			// Numpad
-			case Key::NumLock: return "Key::NumLock";
-			case Key::NumPad0: return "Key::NumPad0"; case Key::NumPad1: return "Key::NumPad1"; case Key::NumPad2: return "Key::NumPad2";
-			case Key::NumPad3: return "Key::NumPad3"; case Key::NumPad4: return "Key::NumPad4"; case Key::NumPad5: return "Key::NumPad5";
-			case Key::NumPad6: return "Key::NumPad6"; case Key::NumPad7: return "Key::NumPad7"; case Key::NumPad8: return "Key::NumPad8";
-			case Key::NumPad9: return "Key::NumPad9";
-			case Key::Add: return "Key::Add"; case Key::Subtract: return "Key::Subtract";
-			case Key::Multiply: return "Key::Multiply"; case Key::Divide: return "Key::Divide"; case Key::Decimal: return "Key::Decimal";
+			EZWIN32_CASE_TO_STR(Key::Up);
+			EZWIN32_CASE_TO_STR(Key::Down);
+			EZWIN32_CASE_TO_STR(Key::Left);
+			EZWIN32_CASE_TO_STR(Key::Right);
 
-			// Media & browser keys
-			case Key::VolumeUp: return "Key::VolumeUp"; case Key::VolumeDown: return "Key::VolumeDown"; case Key::VolumeMute: return "Key::VolumeMute";
-			case Key::MediaPlayPause: return "Key::MediaPlayPause"; case Key::MediaStop: return "Key::MediaStop";
-			case Key::MediaNextTrack: return "Key::MediaNextTrack"; case Key::MediaPrevTrack: return "Key::MediaPrevTrack";
-			case Key::BrowserBack: return "Key::BrowserBack"; case Key::BrowserForward: return "Key::BrowserForward";
-			case Key::BrowserRefresh: return "Key::BrowserRefresh"; case Key::BrowserStop: return "Key::BrowserStop";
-			case Key::BrowserSearch: return "Key::BrowserSearch"; case Key::BrowserFavorites: return "Key::BrowserFavorites";
-			case Key::BrowserHome: return "Key::BrowserHome";
-			case Key::LaunchMail: return "Key::LaunchMail"; case Key::LaunchApp1: return "Key::LaunchApp1";
-			case Key::LaunchApp2: return "Key::LaunchApp2"; case Key::LaunchMediaSelect: return "Key::LaunchMediaSelect";
+			EZWIN32_CASE_TO_STR(Key::Tab);
+			EZWIN32_CASE_TO_STR(Key::Alt);
+			EZWIN32_CASE_TO_STR(Key::Apps);
+			EZWIN32_CASE_TO_STR(Key::Space);
+			EZWIN32_CASE_TO_STR(Key::Clear);
+			EZWIN32_CASE_TO_STR(Key::Shift);
+			EZWIN32_CASE_TO_STR(Key::Enter);
+			EZWIN32_CASE_TO_STR(Key::LeftWin);
+			EZWIN32_CASE_TO_STR(Key::RightWin);
+			EZWIN32_CASE_TO_STR(Key::Escape);
+			EZWIN32_CASE_TO_STR(Key::Control);
+			EZWIN32_CASE_TO_STR(Key::CapLock);
+			EZWIN32_CASE_TO_STR(Key::BackSpace);
 
-			default: return "Key::Unknown";
+			EZWIN32_CASE_TO_STR(Key::NumLock);
+			EZWIN32_CASE_TO_STR(Key::NumPad0);
+			EZWIN32_CASE_TO_STR(Key::NumPad1);
+			EZWIN32_CASE_TO_STR(Key::NumPad2);
+			EZWIN32_CASE_TO_STR(Key::NumPad3);
+			EZWIN32_CASE_TO_STR(Key::NumPad4);
+			EZWIN32_CASE_TO_STR(Key::NumPad5);
+			EZWIN32_CASE_TO_STR(Key::NumPad6);
+			EZWIN32_CASE_TO_STR(Key::NumPad7);
+			EZWIN32_CASE_TO_STR(Key::NumPad8);
+			EZWIN32_CASE_TO_STR(Key::NumPad9);
+
+			EZWIN32_CASE_TO_STR(Key::Add);
+			EZWIN32_CASE_TO_STR(Key::Divide);
+			EZWIN32_CASE_TO_STR(Key::Decimal);
+			EZWIN32_CASE_TO_STR(Key::Subtract);
+			EZWIN32_CASE_TO_STR(Key::Multiply);
+
+			EZWIN32_CASE_TO_STR(Key::VolumeUp);
+			EZWIN32_CASE_TO_STR(Key::VolumeMute);
+			EZWIN32_CASE_TO_STR(Key::VolumeDown);
+
+			EZWIN32_CASE_TO_STR(Key::MediaStop);
+			EZWIN32_CASE_TO_STR(Key::MediaPlayPause);
+			EZWIN32_CASE_TO_STR(Key::MediaNextTrack);
+			EZWIN32_CASE_TO_STR(Key::MediaPrevTrack);
+
+			EZWIN32_CASE_TO_STR(Key::LaunchMail);
+			EZWIN32_CASE_TO_STR(Key::LaunchApp1);
+			EZWIN32_CASE_TO_STR(Key::LaunchApp2);
+			EZWIN32_CASE_TO_STR(Key::LaunchMediaSelect);
+
+			EZWIN32_CASE_TO_STR(Key::BrowserHome);
+			EZWIN32_CASE_TO_STR(Key::BrowserStop);
+			EZWIN32_CASE_TO_STR(Key::BrowserBack);
+			EZWIN32_CASE_TO_STR(Key::BrowserSearch);
+			EZWIN32_CASE_TO_STR(Key::BrowserForward);
+			EZWIN32_CASE_TO_STR(Key::BrowserRefresh);
+			EZWIN32_CASE_TO_STR(Key::BrowserFavorites);
+
+			default:	return "Key::Unknown";
 		}
 	}
 
@@ -441,12 +537,12 @@ namespace easywin32
 	{
 		switch (button)
 		{
-			case MouseButton::Left:			return "MouseButton::Left";
-			case MouseButton::Right:		return "MouseButton::Right";
-			case MouseButton::Middle:		return "MouseButton::Middle";
-			case MouseButton::XButton1:		return "MouseButton::XButton1";
-			case MouseButton::XButton2:		return "MouseButton::XButton2";
-			default:						return "MouseButton::Unknown";
+			EZWIN32_CASE_TO_STR(MouseButton::Left);
+			EZWIN32_CASE_TO_STR(MouseButton::Right);
+			EZWIN32_CASE_TO_STR(MouseButton::Middle);
+			EZWIN32_CASE_TO_STR(MouseButton::XButton1);
+			EZWIN32_CASE_TO_STR(MouseButton::XButton2);
+			default:	return "MouseButton::Unknown";
 		}
 	}
 
@@ -511,10 +607,10 @@ namespace easywin32
 	{
 		switch (action)
 		{
-			case MouseAction::Up:				return "MouseAction::Up";
-			case MouseAction::Down:				return "MouseAction::Down";
-			case MouseAction::DoubleClick:		return "MouseAction::DoubleClick";
-			default:							return "MouseAction::Unknown";
+			EZWIN32_CASE_TO_STR(MouseAction::Up);
+			EZWIN32_CASE_TO_STR(MouseAction::Down);
+			EZWIN32_CASE_TO_STR(MouseAction::DoubleClick);
+			default:	return "MouseAction::Unknown";
 		}
 	}
 
@@ -535,10 +631,10 @@ namespace easywin32
 	{
 		switch (action)
 		{
-			case KeyAction::Press:			return "KeyAction::Press";
-			case KeyAction::Repeat:			return "KeyAction::Repeat";
-			case KeyAction::Release:		return "KeyAction::Release";
-			default:						return "KeyAction::Unknown";
+			EZWIN32_CASE_TO_STR(KeyAction::Press);
+			EZWIN32_CASE_TO_STR(KeyAction::Repeat);
+			EZWIN32_CASE_TO_STR(KeyAction::Release);
+			default:	return "KeyAction::Unknown";
 		}
 	}
 
@@ -570,21 +666,21 @@ namespace easywin32
 	{
 		switch (cursor)
 		{
-			case Cursor::None:				return "Cursor::None";
-			case Cursor::Wait:				return "Cursor::Wait";
-			case Cursor::Hand:				return "Cursor::Hand";
-			case Cursor::Help:				return "Cursor::Help";
-			case Cursor::Arrow:				return "Cursor::Arrow";
-			case Cursor::Cross:				return "Cursor::Cross";
-			case Cursor::IBeam:				return "Cursor::IBeam";
-			case Cursor::SizeWE:			return "Cursor::SizeWE";
-			case Cursor::SizeNS:			return "Cursor::SizeNS";
-			case Cursor::SizeAll:			return "Cursor::SizeAll";
-			case Cursor::UpArrow:			return "Cursor::UpArrow";
-			case Cursor::SizeNWSE:			return "Cursor::SizeNWSE";
-			case Cursor::SizeNESW:			return "Cursor::SizeNESW";
-			case Cursor::AppStarting:		return "Cursor::AppStarting";
-			default:						return "Cursor::Unknown";
+			EZWIN32_CASE_TO_STR(Cursor::None);
+			EZWIN32_CASE_TO_STR(Cursor::Wait);
+			EZWIN32_CASE_TO_STR(Cursor::Hand);
+			EZWIN32_CASE_TO_STR(Cursor::Help);
+			EZWIN32_CASE_TO_STR(Cursor::Arrow);
+			EZWIN32_CASE_TO_STR(Cursor::Cross);
+			EZWIN32_CASE_TO_STR(Cursor::IBeam);
+			EZWIN32_CASE_TO_STR(Cursor::SizeWE);
+			EZWIN32_CASE_TO_STR(Cursor::SizeNS);
+			EZWIN32_CASE_TO_STR(Cursor::SizeAll);
+			EZWIN32_CASE_TO_STR(Cursor::UpArrow);
+			EZWIN32_CASE_TO_STR(Cursor::SizeNWSE);
+			EZWIN32_CASE_TO_STR(Cursor::SizeNESW);
+			EZWIN32_CASE_TO_STR(Cursor::AppStarting);
+			default:	return "Cursor::Unknown";
 		}
 	}
 
@@ -624,29 +720,29 @@ namespace easywin32
 	{
 		switch (result)
 		{
-			case HitTestResult::Nowhere:		return "HitTestResult::Nowhere";
-			case HitTestResult::Client:			return "HitTestResult::Client";
-			case HitTestResult::Caption:		return "HitTestResult::Caption";
-			case HitTestResult::SystemMenu:		return "HitTestResult::SystemMenu";
-			case HitTestResult::GrowBox:		return "HitTestResult::GrowBox";
-			case HitTestResult::Menu:			return "HitTestResult::Menu";
-			case HitTestResult::HScroll:		return "HitTestResult::HScroll";
-			case HitTestResult::VScroll:		return "HitTestResult::VScroll";
-			case HitTestResult::MinButton:		return "HitTestResult::MinButton";
-			case HitTestResult::MaxButton:		return "HitTestResult::MaxButton";
-			case HitTestResult::Left:			return "HitTestResult::Left";
-			case HitTestResult::Right:			return "HitTestResult::Right";
-			case HitTestResult::Top:			return "HitTestResult::Top";
-			case HitTestResult::TopLeft:		return "HitTestResult::TopLeft";
-			case HitTestResult::TopRight:		return "HitTestResult::TopRight";
-			case HitTestResult::Bottom:			return "HitTestResult::Bottom";
-			case HitTestResult::BottomLeft:		return "HitTestResult::BottomLeft";
-			case HitTestResult::BottomRight:	return "HitTestResult::BottomRight";
-			case HitTestResult::Border:			return "HitTestResult::Border";
-			case HitTestResult::CloseButton:	return "HitTestResult::CloseButton";
-			case HitTestResult::HelpButton:		return "HitTestResult::HelpButton";
-			case HitTestResult::Default:		return "HitTestResult::Default";
-			default:							return "HitTestResult::Unknown";
+			EZWIN32_CASE_TO_STR(HitTestResult::Nowhere);
+			EZWIN32_CASE_TO_STR(HitTestResult::Client);
+			EZWIN32_CASE_TO_STR(HitTestResult::Caption);
+			EZWIN32_CASE_TO_STR(HitTestResult::SystemMenu);
+			EZWIN32_CASE_TO_STR(HitTestResult::GrowBox);
+			EZWIN32_CASE_TO_STR(HitTestResult::Menu);
+			EZWIN32_CASE_TO_STR(HitTestResult::HScroll);
+			EZWIN32_CASE_TO_STR(HitTestResult::VScroll);
+			EZWIN32_CASE_TO_STR(HitTestResult::MinButton);
+			EZWIN32_CASE_TO_STR(HitTestResult::MaxButton);
+			EZWIN32_CASE_TO_STR(HitTestResult::Left);
+			EZWIN32_CASE_TO_STR(HitTestResult::Right);
+			EZWIN32_CASE_TO_STR(HitTestResult::Top);
+			EZWIN32_CASE_TO_STR(HitTestResult::TopLeft);
+			EZWIN32_CASE_TO_STR(HitTestResult::TopRight);
+			EZWIN32_CASE_TO_STR(HitTestResult::Bottom);
+			EZWIN32_CASE_TO_STR(HitTestResult::BottomLeft);
+			EZWIN32_CASE_TO_STR(HitTestResult::BottomRight);
+			EZWIN32_CASE_TO_STR(HitTestResult::Border);
+			EZWIN32_CASE_TO_STR(HitTestResult::CloseButton);
+			EZWIN32_CASE_TO_STR(HitTestResult::HelpButton);
+			EZWIN32_CASE_TO_STR(HitTestResult::Default);
+			default:	return "HitTestResult::Unknown";
 		}
 	}
 
