@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
+﻿# Copyright (c) 2025 Wenchao Huang <physhuangwenchao@gmail.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,14 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-# Add samples
-add_subdirectory(julia_set)
-add_subdirectory(multi_window)
+# Target name
+set(TARGET_NAME multi_window)
+
+# Create the executable target
+add_executable(${TARGET_NAME} main.cpp)
+
+# Link directories
+target_link_libraries(${TARGET_NAME} PRIVATE EasyWin32)
+
+# CMake properties
+set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Examples")
