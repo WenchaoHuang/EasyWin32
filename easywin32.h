@@ -992,7 +992,7 @@ private:
 	template<bool EraseTitleBar> struct NativeClass;
 
 	//!	@brief	Window procedure for message dispatching.
-	template<bool EraseTitleBar> static Result procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	template<bool EraseTitleBar> static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 public:
 
@@ -1026,7 +1026,6 @@ public:
 private:
 
 	HWND				m_hWnd = nullptr;
-	Style				m_style = Style::Overlapped;
 	Rect				m_bounds = { 100, 100, 800, 600 };
 #ifdef UNICODE
 	string_type			m_title = L"EasyWin32";
@@ -1058,55 +1057,50 @@ private:
  *		- On `WM_DESTROY`, a quit message is posted to end the application loop.
  *		- For other messages, the stored Window pointer is used to dispatch events to registered callbacks (e.g., onClose, onResize, onMouseClick).
  */
-template<bool EraseTitleBar> easywin32::Result easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (uMsg == WM_CREATE)		//	Retrieve the use pointer
+	// Retrieve the stored Window* from the window's user data
+	auto window = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+	if (uMsg == WM_CREATE)	// Retrieve the use pointer
 	{
 		CREATESTRUCT * createStrcut = reinterpret_cast<CREATESTRUCT*>(lParam);
 
-		auto window = reinterpret_cast<Window*>(createStrcut->lpCreateParams);
-
-		::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)window);
+		::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(createStrcut->lpCreateParams));
 	}
 	else if (uMsg == WM_NCCALCSIZE)
 	{
 		if constexpr (EraseTitleBar)
 		{
-			constexpr int frameSize = 8;	//	win32 default size for drag
+			NCCALCSIZE_PARAMS * params = (NCCALCSIZE_PARAMS*)lParam;
 
-			NCCALCSIZE_PARAMS * pParams = (NCCALCSIZE_PARAMS*)lParam;
+			constexpr int frameSize = 8;	//	win32 default size for drag
 
 			if (::IsZoomed(hWnd))
 			{
-				pParams->rgrc[0].top += frameSize;
-				pParams->rgrc[0].left += frameSize;
-				pParams->rgrc[0].right -= frameSize;
-				pParams->rgrc[0].bottom -= frameSize;
+				params->rgrc[0].top += frameSize;
+				params->rgrc[0].left += frameSize;
+				params->rgrc[0].right -= frameSize;
+				params->rgrc[0].bottom -= frameSize;
 			}
 			else
 			{
-				pParams->rgrc[0].top += 0;				//	skip title bar
-				pParams->rgrc[0].left += frameSize;
-				pParams->rgrc[0].right -= frameSize;
-				pParams->rgrc[0].bottom -= frameSize;
+				params->rgrc[0].top += 0;				//	skip title bar
+				params->rgrc[0].left += frameSize;
+				params->rgrc[0].right -= frameSize;
+				params->rgrc[0].bottom -= frameSize;
 			}
 
 			return 0;
 		}
 	}
-	else if (uMsg == WM_DESTROY)	//	Handle window destruction
+	else if (uMsg == WM_DESTROY)	// Handle window destruction
 	{
-		::PostQuitMessage(0);		//	Post a quit message to end the application message loop
+		::PostQuitMessage(0);		// Post a quit message to end the application message loop
 		
-		return 0;	//	Message handled
+		return 0;	// Message handled
 	}
-
-	//	Retrieve the stored Window* from the window's user data
-	LONG_PTR ptr = ::GetWindowLongPtr(hWnd, GWLP_USERDATA);
-
-	auto window = reinterpret_cast<Window*>(ptr);
-
-	if (window != nullptr)
+	else if (window != nullptr)
 	{
 		Result result = -1;
 
@@ -1247,11 +1241,11 @@ template<bool EraseTitleBar> struct easywin32::Window::NativeClass : public WNDC
 		lpszMenuName	= NULL;
 		hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
 	#ifdef UNICODE
-		lpszClassName	= L"EasyWin32";
+		lpszClassName	= EraseTitleBar ? L"EasyWin32-NoTitleBar" : L"EasyWin32";
 	#else
-		lpszClassName	= "EasyWin32";
+		lpszClassName	= EraseTitleBar ? "EasyWin32-NoTitleBar" : "EasyWin32";
 	#endif
-		isRegistered = ::RegisterClassEx(this);
+		isRegistered	= ::RegisterClassEx(this);
 	}
 
 	~NativeClass()
@@ -1266,9 +1260,15 @@ template<bool EraseTitleBar> struct easywin32::Window::NativeClass : public WNDC
 
 void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
 {
-	if (::IsWindow(m_hWnd) != 0)		return;
+	if (::IsWindow(m_hWnd) != 0)
+		return;
 
-	if (styleFlags.has(Style::ThickFrame) && !styleFlags.has(Style::Caption))
+	// Handle Popup style conflicts
+	if (styleFlags.has(Style::Popup))
+		styleFlags &= ~Style::Caption;
+
+	// Should manually erase title bar or not?
+	if (!styleFlags.has(Style::Popup) && !styleFlags.has(Style::Caption))
 	{
 		static NativeClass<true>	s_win32Class;
 
@@ -1284,8 +1284,8 @@ void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlag
 			rect.left -= frameSize;
 
 			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
-									  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
-									  this /* Additional application data */);
+									  rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
+									  NULL, NULL, s_win32Class.hInstance, this /* Additional application data */);
 		}
 	}
 	else
@@ -1301,8 +1301,8 @@ void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlag
 			::AdjustWindowRectEx(&rect, styleFlags, FALSE, exStyleFlags);
 
 			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
-									  rect.left, rect.top, rect.right, rect.bottom, NULL, NULL, s_win32Class.hInstance,
-									  this /* Additional application data */);
+									  rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
+									  NULL, NULL, s_win32Class.hInstance, this /* Additional application data */);
 		}
 	}
 }
