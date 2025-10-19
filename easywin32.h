@@ -826,13 +826,61 @@ public:
 public:
 
 	/**
-	 *	@brief			
+	 *	@brief		Opens a new window with the specified title, bounds and styles.
+	 *	@details	Creates a Win32 window using `CreateWindowEx`, applying the provided style flags and extended style flags.
+	 *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
+	 *				If the window is already open (m_hWnd is valid), this method does nothing. Stores the window handle and updates m_styleFlags and m_bounds.
+	 *	@param[in]	title - The title of the window.
+	 *	@param[in]	bounds - The rectangular area defining the window's position (left, top) and bounds (right, bottom) in screen coordinates.
+	 *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`, `Style::Popup`). Defaults to `Style::OverlappedWindow`.
+	 *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., ExStyle::Layered, ExStyle::TopMost). Defaults to 0 (no extended styles).
+	 *	@note		If `Style::Popup` is used, incompatible styles (e.g., Caption) are automatically removed to ensure compatibility.
+	 *	@note		For windows without `Style::Caption`, a custom border (8 pixels) is added for dragging, consistent with `WM_NCCALCSIZE` handling.
 	 */
-	void open(Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
+	void open(string_type title, Rect bounds, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
+
+	//!	@brief		Opens a new window with default title and specified bounds and styles.
+	void open(Rect bounds, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0)
+	{
+	#ifdef UNICODE
+		this->open(L"Easy-Win32", bounds, styleFlags, exStyleFlags);
+	#else
+		this->open("Easy-Win32", bounds, styleFlags, exStyleFlags);
+	#endif
+	}
 
 
 	/**
-	 *	@brief		
+	 *	@brief		Opens a new window with the specified title, size and styles.
+	 *	@details	Creates a Win32 window using `CreateWindowEx`, applying the provided style flags and extended style flags.
+	 *				The window is positioned at default screen coordinates (CW_USEDEFAULT) and sized according to the provided Size structure.
+	 *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
+	 *				If the window is already open (m_hWnd is valid), this method does nothing. Updates m_styleFlags and m_bounds accordingly.
+	 *	@param[in]	title - The title of the window.
+	 *	@param[in]	size - The size of the window (width and height in pixels) as a Size structure (cx, cy).
+	 *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`, `Style::Popup`). Defaults to `Style::OverlappedWindow`.
+	 *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., `ExStyle::Layered`, `ExStyle::TopMost`). Defaults to 0 (no extended styles).
+	 *	@note		If `Style::Popup` is specified, incompatible styles (e.g., `Style::Caption`) are automatically removed to ensure compatibility.
+	 *	@note		For windows without `Style::Popup` and `Style::Caption`, a custom border (8 pixels) is added for dragging, consistent with WM_NCCALCSIZE handling.
+	 *	@note		The window is created at default screen coordinates (CW_USEDEFAULT). Use setPos to specify a custom position.
+	 */
+	void open(string_type title, Size size, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
+
+	//!	@brief		Opens a new window with default title and specified size and styles.
+	void open(Size size, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0)
+	{
+	#ifdef UNICODE
+		this->open(L"Easy-Win32", size, styleFlags, exStyleFlags);
+	#else
+		this->open("Easy-Win32", size, styleFlags, exStyleFlags);
+	#endif
+	}
+
+
+	/**
+	 *	@brief		Closes and destroys the window.
+	 *	@details	Calls DestroyWindow to close the window and releases the associated window handle (m_hWnd).
+	 *				Sets m_hWnd to nullptr to indicate the window is no longer valid. Safe to call even if the window is already closed.
 	 */
 	void close() { ::DestroyWindow(m_hWnd);		m_hWnd = nullptr; }
 
@@ -900,6 +948,9 @@ public:
 	//!	@brief	Enables or disables mouse and keyboard input to the specified window.
 	void enableInput(bool bEnable) { ::EnableWindow(m_hWnd, bEnable); }
 
+	//!	@brief	Sets the window title text.	
+	void setTitle(string_type title) { ::SetWindowText(m_hWnd, title.c_str()); }
+
 	//!	@brief	Sets the parent window
 	void setParent(Window & parent) { ::SetParent(m_hWnd, parent.nativeHandle()); }
 
@@ -941,36 +992,6 @@ public:
 public:
 
 	/**
-	 *	@brief		Sets the window title text.
-	 *	@details	Updates the internal title string and, if the window has already been
-	 *				created, also updates the actual Win32 window title using SetWindowText().
-	 *	@note		If the window has not been created yet (m_hWnd == nullptr), only
-	 *				the internal title string is updated. The title will be applied
-	 *				once the window is created.
-	 */
-	void setTitle(string_type title)
-	{
-		if (m_title != title)
-		{
-			::SetWindowText(m_hWnd, title.c_str());
-
-			m_title = title;
-		}
-	}
-
-
-	/**
-	 *	@brief		Returns the window title text.
-	 */
-	const string_type & getTitle() const { return m_title; }
-
-public:
-
-	void setPos(int left, int top, int right, int bottom);
-
-public:
-
-	/**
 	 *	@brief		Waits for and processes the next window message.
 	 *	@details	This call will block until a new message is available in the queue for this window.
 	 *				It retrieves the message with `GetMessage`, translates it (e.g. converts virtual-key
@@ -989,10 +1010,11 @@ public:
 
 private:
 
-	template<bool EraseTitleBar> struct NativeClass;
-
 	//!	@brief	Window procedure for message dispatching.
 	template<bool EraseTitleBar> static LRESULT procedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+
+	//!	@brief	Create window (internal).
+	template<bool EraseTitleBar> void internalOpen(string_type title, DWORD dwStyle, DWORD dwExStyle, int x, int y, int w, int h);
 
 public:
 
@@ -1025,13 +1047,7 @@ public:
 
 private:
 
-	HWND				m_hWnd = nullptr;
-	Rect				m_bounds = { 100, 100, 800, 600 };
-#ifdef UNICODE
-	string_type			m_title = L"EasyWin32";
-#else
-	string_type			m_title = "EasyWin32";
-#endif
+	HWND		m_hWnd = nullptr;
 };
 
 /*********************************************************************************
@@ -1216,49 +1232,92 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 
 
 /**
- *	@brief	Window class wrapper for Win32 window registration.
- *
- *	This struct inherits from `WNDCLASSEX` and is used to register a single
- *	window class with the Win32 API. The class is automatically registered
- *	upon construction and unregistered upon destruction. This ensures that
- *	the registration occurs only once during the application's lifetime.
+ *	@brief		Internal method to create a Win32 window with specified parameters.
+ *	@details	Creates a window using `CreateWindowEx` with the provided title, styles, and dimensions.
+ *				Registers a window class (either "EasyWin32" or "EasyWin32-NoTitleBar" based on EraseTitleBar)
+ *				to handle message dispatching. The window class is registered once per application lifetime and
+ *				unregistered upon destruction. Stores the window handle in m_hWnd and associates this Window instance
+ *				with the native handle for message processing.
+ *	@tparam		EraseTitleBar - If true, registers a window class without a title bar ("EasyWin32-NoTitleBar"),
+ *				used for windows without `Style::Caption` or `Style::Popup`. If false, uses the standard "EasyWin32" class.
+ *	@param[in]	title - The window title text, displayed in the title bar (if applicable).
+ *	@param[in]	dwStyle - The native window style flags (e.g., WS_OVERLAPPEDWINDOW, WS_POPUP).
+ *	@param[in]	dwExStyle - The native extended window style flags (e.g., WS_EX_LAYERED, WS_EX_TOPMOST).
+ *	@param[in]	x - The x-coordinate of the window's top-left corner in screen coordinates (e.g., CW_USEDEFAULT).
+ *	@param[in]	y - The y-coordinate of the window's top-left corner in screen coordinates (e.g., CW_USEDEFAULT).
+ *	@param[in]	w - The width of the window in pixels, including non-client areas.
+ *	@param[in]	h - The height of the window in pixels, including non-client areas.
+ *	@note		The window class is registered only once per application, ensuring efficient resource usage.
+ *	@note		If the window class registration fails, an assertion is triggered.
  */
-template<bool EraseTitleBar> struct easywin32::Window::NativeClass : public WNDCLASSEX
+template<bool EraseTitleBar> void easywin32::Window::internalOpen(string_type title, DWORD dwStyle, DWORD dwExStyle, int x, int y, int w, int h)
 {
-	bool isRegistered;
-
-	NativeClass() : isRegistered(false)
+	/**
+	 *	@brief	Static window class wrapper for Win32 window registration.
+	 *
+	 *	This struct inherits from `WNDCLASSEX` and is used to register a single
+	 *	window class with the Win32 API. The class is automatically registered
+	 *	upon construction and unregistered upon destruction. This ensures that
+	 *	the registration occurs only once during the application's lifetime.
+	 */
+	static struct NativeClass : public WNDCLASSEX
 	{
-		cbSize			= sizeof(WNDCLASSEXW);
-		style			= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-		lpfnWndProc		= Window::procedure<EraseTitleBar>;
-		cbClsExtra		= 0;
-		cbWndExtra		= 0;
-		hInstance		= ::GetModuleHandle(NULL);
-		hIcon			= ::LoadIcon(NULL, IDI_APPLICATION);
-		hCursor			= NULL;
-		hbrBackground	= (HBRUSH)::GetStockObject(NULL_BRUSH);
-		lpszMenuName	= NULL;
-		hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
-	#ifdef UNICODE
-		lpszClassName	= EraseTitleBar ? L"EasyWin32-NoTitleBar" : L"EasyWin32";
-	#else
-		lpszClassName	= EraseTitleBar ? "EasyWin32-NoTitleBar" : "EasyWin32";
-	#endif
-		isRegistered	= ::RegisterClassEx(this);
-	}
+		bool isRegistered;
 
-	~NativeClass()
-	{
-		if (isRegistered)
+		NativeClass() : isRegistered(false)
 		{
-			::UnregisterClass(lpszClassName, hInstance);
+			cbSize			= sizeof(WNDCLASSEXW);
+			style			= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+			lpfnWndProc		= Window::procedure<EraseTitleBar>;
+			cbClsExtra		= 0;
+			cbWndExtra		= 0;
+			hInstance		= ::GetModuleHandle(NULL);
+			hIcon			= ::LoadIcon(NULL, IDI_APPLICATION);
+			hCursor			= NULL;
+			hbrBackground	= (HBRUSH)::GetStockObject(NULL_BRUSH);
+			lpszMenuName	= NULL;
+			hIconSm			= ::LoadIcon(NULL, IDI_WINLOGO);
+		#ifdef UNICODE
+			lpszClassName	= EraseTitleBar ? L"EasyWin32-NoTitleBar" : L"EasyWin32";
+		#else
+			lpszClassName	= EraseTitleBar ? "EasyWin32-NoTitleBar" : "EasyWin32";
+		#endif
+			isRegistered	= ::RegisterClassEx(this);
 		}
+
+		~NativeClass()
+		{
+			if (isRegistered)
+			{
+				::UnregisterClass(lpszClassName, hInstance);
+			}
+		}
+	} s_win32Class;
+
+	assert(s_win32Class.isRegistered);
+
+	if (s_win32Class.isRegistered)
+	{
+		m_hWnd = ::CreateWindowEx(dwExStyle, s_win32Class.lpszClassName, title.c_str(), dwStyle,
+								  x, y, w, h, NULL, NULL, s_win32Class.hInstance,
+								  this /* Additional application data */);
 	}
-};
+}
 
 
-void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
+/**
+ *	@brief		Opens a new window with the specified title, bounds and styles.
+ *	@details	Creates a Win32 window using `CreateWindowEx`, applying the provided style flags and extended style flags.
+ *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
+ *				If the window is already open (m_hWnd is valid), this method does nothing. Stores the window handle and updates m_styleFlags and m_bounds.
+ *	@param[in]	title - The title of the window.
+ *	@param[in]	bounds - The rectangular area defining the window's position (left, top) and bounds (right, bottom) in screen coordinates.
+ *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`, `Style::Popup`). Defaults to `Style::OverlappedWindow`.
+ *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., ExStyle::Layered, ExStyle::TopMost). Defaults to 0 (no extended styles).
+ *	@note		If `Style::Popup` is used, incompatible styles (e.g., Caption) are automatically removed to ensure compatibility.
+ *	@note		For windows without `Style::Caption`, a custom border (8 pixels) is added for dragging, consistent with `WM_NCCALCSIZE` handling.
+ */
+void easywin32::Window::open(string_type title, Rect bounds, Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
 {
 	if (::IsWindow(m_hWnd) != 0)
 		return;
@@ -1270,40 +1329,70 @@ void easywin32::Window::open(Flags<Style> styleFlags, Flags<ExStyle> exStyleFlag
 	// Should manually erase title bar or not?
 	if (!styleFlags.has(Style::Popup) && !styleFlags.has(Style::Caption))
 	{
-		static NativeClass<true>	s_win32Class;
+		constexpr int frameSize = 8;
+		bounds.bottom += frameSize;
+		bounds.right += frameSize;
+		bounds.left -= frameSize;
 
-		assert(s_win32Class.isRegistered);
-
-		if (s_win32Class.isRegistered)
-		{
-			auto rect = m_bounds;
-
-			constexpr int frameSize = 8;
-			rect.bottom += frameSize;
-			rect.right += frameSize;
-			rect.left -= frameSize;
-
-			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
-									  rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
-									  NULL, NULL, s_win32Class.hInstance, this /* Additional application data */);
-		}
+		// Adjust bounds for windows without Popup or Caption (custom border for dragging)
+		this->internalOpen<true>(title, styleFlags, exStyleFlags, bounds.left, bounds.top,
+								 bounds.right - bounds.left, bounds.bottom - bounds.top);
 	}
 	else
 	{
-		static NativeClass<false>	s_win32Class;
+		// Adjust bounds for standard non-client areas (e.g., title bar, borders)
+		::AdjustWindowRectEx(&bounds, styleFlags, FALSE, exStyleFlags);
 
-		assert(s_win32Class.isRegistered);
+		this->internalOpen<false>(title, styleFlags, exStyleFlags, bounds.left, bounds.top,
+								  bounds.right - bounds.left, bounds.bottom - bounds.top);
+	}
+}
 
-		if (s_win32Class.isRegistered)
-		{
-			auto rect = m_bounds;
 
-			::AdjustWindowRectEx(&rect, styleFlags, FALSE, exStyleFlags);
+/**
+ *	@brief		Opens a new window with the specified title, size and styles.
+ *	@details	Creates a Win32 window using `CreateWindowEx`, applying the provided style flags and extended style flags.
+ *				The window is positioned at default screen coordinates (CW_USEDEFAULT) and sized according to the provided Size structure.
+ *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
+ *				If the window is already open (m_hWnd is valid), this method does nothing. Updates m_styleFlags and m_bounds accordingly.
+ *	@param[in]	title - The title of the window.
+ *	@param[in]	size - The size of the window (width and height in pixels) as a Size structure (cx, cy).
+ *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`, `Style::Popup`). Defaults to `Style::OverlappedWindow`.
+ *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., `ExStyle::Layered`, `ExStyle::TopMost`). Defaults to 0 (no extended styles).
+ *	@note		If `Style::Popup` is specified, incompatible styles (e.g., `Style::Caption`) are automatically removed to ensure compatibility.
+ *	@note		For windows without `Style::Popup` and `Style::Caption`, a custom border (8 pixels) is added for dragging, consistent with WM_NCCALCSIZE handling.
+ *	@note		The window is created at default screen coordinates (CW_USEDEFAULT). Use setPos to specify a custom position.
+ */
+void easywin32::Window::open(string_type title, Size size, Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
+{
+	if (::IsWindow(m_hWnd) != 0)
+		return;
 
-			m_hWnd = ::CreateWindowEx(exStyleFlags, s_win32Class.lpszClassName, m_title.c_str(), styleFlags,
-									  rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
-									  NULL, NULL, s_win32Class.hInstance, this /* Additional application data */);
-		}
+	// Handle Popup style conflicts
+	if (styleFlags.has(Style::Popup))
+		styleFlags &= ~Style::Caption;
+		
+	RECT bounds = { 0, 0, size.cx, size.cy };
+
+	// Should manually erase title bar or not?
+	if (!styleFlags.has(Style::Popup) && !styleFlags.has(Style::Caption))
+	{
+		constexpr int frameSize = 8;
+		bounds.bottom += frameSize;
+		bounds.right += frameSize;
+		bounds.left -= frameSize;
+
+		// Adjust bounds for windows without Popup or Caption (custom border for dragging)
+		this->internalOpen<true>(title, styleFlags, exStyleFlags, CW_USEDEFAULT, CW_USEDEFAULT,
+								 bounds.right - bounds.left, bounds.bottom - bounds.top);
+	}
+	else
+	{
+		// Adjust bounds for standard non-client areas (e.g., title bar, borders)
+		::AdjustWindowRectEx(&bounds, styleFlags, FALSE, exStyleFlags);
+
+		this->internalOpen<false>(title, styleFlags, exStyleFlags, CW_USEDEFAULT, CW_USEDEFAULT,
+								  bounds.right - bounds.left, bounds.bottom - bounds.top);
 	}
 }
 

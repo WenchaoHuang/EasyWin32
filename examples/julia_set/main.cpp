@@ -84,8 +84,7 @@ int main()
 	std::vector<EzColor>	pixels(num_pixels);
 
 	EzWindow window;
-	window.setTitle("Julia Set");
-	window.open();
+	window.open("Julia Set", EzSize{ width, height });
 	window.show();
 
 	window.onPaint = [&]()
