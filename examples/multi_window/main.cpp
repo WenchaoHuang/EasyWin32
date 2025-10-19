@@ -32,17 +32,9 @@ int main()
 	EzWindow window1;
 	EzWindow window2;
 
-	window0.setTitle("Window 0");
-	window1.setTitle("Window 1");
-	window2.setTitle("Window 2");
-
-	window0.open();
-	window1.open();
-	window2.open();
-
-	window0.show();
-	window1.show();
-	window2.show();
+	window0.open("Window 0", EzSize{ 800, 600 }, EzStyle::OverlappedWindow | EzStyle::Visible);
+	window1.open("Window 1", EzSize{ 800, 600 }, EzStyle::OverlappedWindow | EzStyle::Visible);
+	window2.open("Window 2", EzSize{ 800, 600 }, EzStyle::OverlappedWindow | EzStyle::Visible);
 
 	window0.onHitTest = [](int x, int y) { return EzHitTestResult::Caption; };
 	window1.onHitTest = [](int x, int y) { return EzHitTestResult::Caption; };

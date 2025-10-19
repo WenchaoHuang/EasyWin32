@@ -36,8 +36,7 @@ extern void keyboardEventTest(EzWindow & window);
 int main()
 {
 	EzWindow window;
-	window.setTitle("EasyWin32");
-	window.open(EzStyle::OverlappedWindow);
+	window.open("EasyWin32-Test", EzRect{ 100, 100, 900, 700 });
 	window.show();
 
 	std::vector<EzColor> image(1920 * 1080, EzColor{ 100, 200, 255 });
