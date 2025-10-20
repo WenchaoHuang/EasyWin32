@@ -29,6 +29,7 @@
 
 // C++ headers
 #include <string>
+#include <vector>
 #include <functional>
 
 /*********************************************************************************
@@ -1028,7 +1029,7 @@ public:
 	 */
 	std::function<Result(HWND, UINT, WPARAM, LPARAM)>						forwardMessage;		// Called before default message handling.
 	std::function<Result(wchar_t)>											onInputCharacter;	// Called when a character input (WM_CHAR, WM_SYSCHAR, WM_UNICHAR) is received.
-	std::function<Result(string_type)>										onDropFile;			// Called when files are dropped onto the window (WM_DROPFILES), requires ExStyle::AcceptFiles.
+	std::function<Result(const std::vector<string_type>&)>					onDropFiles;		// Called when files are dropped onto the window (WM_DROPFILES), requires ExStyle::AcceptFiles.
 	std::function<Result()>													onKillFocus;		// Called when the window loses focus (WM_KILLFOCUS).
 	std::function<Result()>													onSetFocus;			// Called when the window gains focus (WM_SETFOCUS).
 	std::function<Result()>													onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
@@ -1195,11 +1196,13 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 			}
 			case WM_DROPFILES:
 			{
-				if (window->onDropFile)
-				{
-					HDROP hDrop = (HDROP)wParam;
+				HDROP hDrop = (HDROP)wParam;
 
-					UINT count = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+				if (window->onDropFiles)
+				{
+					UINT count = ::DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+
+					std::vector<string_type> filePaths(count);
 
 					for (UINT i = 0; i < count; ++i)
 					{
@@ -1208,15 +1211,15 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 					#else
 						char filePath[MAX_PATH];
 					#endif
-						DragQueryFile(hDrop, i, filePath, MAX_PATH);
+						::DragQueryFile(hDrop, i, filePath, MAX_PATH);
 
-						window->onDropFile(filePath);
+						filePaths[i] = filePath;
 					}
 
-					::DragFinish(hDrop);
-
-					return 0;
+					result = window->onDropFiles(filePaths);
 				}
+
+				::DragFinish(hDrop);
 
 				break;
 			}
