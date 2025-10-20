@@ -36,7 +36,7 @@ extern void keyboardEventTest(EzWindow & window);
 int main()
 {
 	EzWindow window;
-	window.open("EasyWin32-Test", EzRect{ 100, 100, 900, 700 });
+	window.open("EasyWin32-Test", EzRect{ 100, 100, 900, 700 }, EzStyle::OverlappedWindow, EzExStyle::AcceptFiles);
 	window.show();
 
 	std::vector<EzColor> image(1920 * 1080, EzColor{ 100, 200, 255 });
@@ -47,6 +47,16 @@ int main()
 		window.drawBitmap(image.data(), 1920, 1080);
 
 		return 0;
+	};
+
+	window.onDropFiles = [](const std::vector<easywin32::string_type> & filePaths)
+	{
+		for (size_t i = 0; i < filePaths.size(); i++)
+		{
+			printf("Drop file[%lld]: %s\n", i, filePaths[i].c_str());
+		}
+
+		return -1;
 	};
 
 	flagsTest();
