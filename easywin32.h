@@ -759,7 +759,7 @@ namespace easywin32
 	{
 		/**
 		 * @brief      Waits for and processes the next message for all windows belonging to the current thread.
-		 * @details    This function blocks until an message is available in the message queue of the
+		 * @details    This function blocks until a message is available in the message queue of the
 		 *             current thread (regardless of which window it belongs to).
 		 * @note       Unlike per-window message processing, passing `nullptr` as `hWnd` allows
 		 *             messages for any window in this thread to be retrieved.
@@ -770,8 +770,8 @@ namespace easywin32
 		/**
 		 * @brief      Processes all pending messages, if available.
 		 * @details    Uses `PeekMessage` to check for all messages in the queue for this thread.
-		 *             If an message exists, it is translated and dispatched to the window procedure.
-		 * @return     `true` if an message was processed, `false` if no messages were pending.
+		 *             If a message exists, it is translated and dispatched to the window procedure.
+		 * @return     `true` if a message was processed, `false` if no messages were pending.
 		 */
 		bool processEvents();
 	}
@@ -1515,7 +1515,7 @@ void easywin32::ThreadWindows::waitEvent()
 /**
  * @brief      Processes all pending messages, if available.
  * @details    Uses `PeekMessage` to check for all messages in the queue for this thread.
- *             If an message exists, it is translated and dispatched to the window procedure.
+ *             If a message exists, it is translated and dispatched to the window procedure.
  * @return     `true` if an event was processed, `false` if no messages were pending.
  */
 bool easywin32::ThreadWindows::processEvents()
