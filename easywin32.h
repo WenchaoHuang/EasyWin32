@@ -937,6 +937,9 @@ public:
 	//!	@brief	Foreground the window.
 	void setForeground() { ::SetForegroundWindow(m_hWnd); }
 
+	//!	@brief	Destorys a timer.
+	void killTimer(UINT_PTR id) { ::KillTimer(m_hWnd, id); }
+
 	//!	@brief	Restore the winodw if it is minimized or maximized.
 	void restore() { ::ShowWindow(m_hWnd, SW_RESTORE); }
 
@@ -961,14 +964,14 @@ public:
 	//!	@brief	Converts the client coordinates to screen coordinates.
 	Point clientToScreen(Point pt) const { ::ClientToScreen(m_hWnd, &pt);	return pt; }
 
-	//!	@brief	Creates a timer with the specified time-out value.
-	void setTimer(unsigned int millisecond) { ::SetTimer(m_hWnd, 1, millisecond, NULL); }
-
 	//!	@brief	Draws a raw RGB bitmap onto the window at the specified position.
 	void drawBitmap(const Color * pixels, int width, int height, int dstX = 0, int dstY = 0);
 
 	//!	@brief	Sets the window opacity (0-255, requires ExStyle::Layered).
 	void setOpacity(Byte alpha) { ::SetLayeredWindowAttributes(m_hWnd, 0, alpha, LWA_ALPHA); }
+
+	//!	@brief	Creates a timer with the specified id and time-out value.
+	void setTimer(UINT_PTR id, unsigned int millisecond) { ::SetTimer(m_hWnd, id, millisecond, NULL); }
 
 	//!	@brief	Sets the window to stay on top of others.
 	void setAlwaysOnTop(bool enable) { ::SetWindowPos(m_hWnd, enable ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); }
@@ -1048,7 +1051,7 @@ public:
 	std::function<Result()>													onEnterMove;		// Called when the user starts moving or resizing the window(WM_ENTERSIZEMOVE).
 	std::function<Result()>													onExitMove;			// Called when the user finishes moving or resizing the window (WM_EXITSIZEMOVE).
 	std::function<Result()>													onPaint;			// Called when the window needs to be repainted (WM_PAINT).
-	std::function<Result()>													onTimer;			// Called when a timer event occurs (WM_TIMER).
+	std::function<Result(UINT_PTR id)>										onTimer;			// Called when a timer event occurs (WM_TIMER).
 	std::function<Result()>													onClose;			// Called when the window is about to close (WM_CLOSE).
 	std::function<Result()>													onMouseLeave;		// Called when the mouse leave the client area (WM_MOUSELEAVE).
 	std::function<Result(int x, int y)>										onMove;				// Called when the window is moved (WM_MOVE).
@@ -1147,8 +1150,8 @@ template<bool EraseTitleBar> LRESULT easywin32::Window::procedure(HWND hWnd, UIN
 		switch (uMsg)
 		{
 			case WM_CLOSE:			if (window->onClose)			result = window->onClose();			break;
-			case WM_TIMER:			if (window->onTimer)			result = window->onTimer();			break;
 			case WM_PAINT:			if (window->onPaint)			result = window->onPaint();			break;
+			case WM_TIMER:			if (window->onTimer)			result = window->onTimer(wParam);	break;
 			case WM_SETFOCUS:		if (window->onSetFocus)			result = window->onSetFocus();		break;
 			case WM_KILLFOCUS:		if (window->onKillFocus)		result = window->onKillFocus();		break;
 			case WM_MOUSELEAVE:		if (window->onMouseLeave)		result = window->onMouseLeave();	break;
