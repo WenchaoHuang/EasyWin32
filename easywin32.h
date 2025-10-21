@@ -973,6 +973,19 @@ public:
 	//!	@brief	Sets the window to stay on top of others.
 	void setAlwaysOnTop(bool enable) { ::SetWindowPos(m_hWnd, enable ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); }
 
+	/**
+	 *	@brief		Simulates a non-client area mouse click (e.g., title bar or window border) at the current cursor position.
+	 *	@details	This function sends a WM_NCLBUTTONDOWN message to the window, making the system believe
+	 *				that the user has clicked on the specified non-client area. For example, passing HTCAPTION
+	 *				will cause the window to start moving as if the title bar was clicked.
+	 */
+	void triggerNonClientClick(HitTestResult result)
+	{
+		POINT pt = {};		::GetCursorPos(&pt);
+		
+		::SendMessage(m_hWnd, WM_NCLBUTTONDOWN, static_cast<WPARAM>(result), MAKELPARAM(pt.x, pt.y));
+	}
+
 	//!	@brief	Requests the window to be redrawn.
 	void requestRedraw(const Rect * rect = nullptr, bool eraseBackground = false)
 	{
