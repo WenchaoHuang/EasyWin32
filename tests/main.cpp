@@ -59,6 +59,19 @@ int main()
 		return -1;
 	};
 
+	auto t0 = std::chrono::steady_clock::now();
+
+	window.onTimer = [&](UINT_PTR id)
+	{
+		auto t1 = std::chrono::steady_clock::now();
+
+		printf("Time = %fs\n", (t1 - t0).count() * 1e-9);
+
+		return 0;
+	};
+
+	window.setTimer(0, 1000);
+
 	flagsTest();
 	mouseEventTest(window);
 	keyboardEventTest(window);
