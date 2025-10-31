@@ -26,11 +26,15 @@
 // C headers
 #include <assert.h>
 #include <Windows.h>
+#include <dwmapi.h>
 
 // C++ headers
 #include <string>
 #include <vector>
 #include <functional>
+
+// Link dwmapi.lib
+#pragma comment(lib, "dwmapi.lib")
 
 /*********************************************************************************
 ********************************    EasyWin32    *********************************
@@ -236,6 +240,45 @@ namespace easywin32
 	//!	@brief	Enables bitwise operators (|, &, ~).
 	EZWIN32_ENABLE_ENUM_FLAGS(ExStyle);
 
+	/*****************************************************************************
+	******************************    CornerStyle    *****************************
+	*****************************************************************************/
+
+	//!	@brief	Corner style of the window.
+	enum class CornerStyle
+	{
+		Default				= DWMWCP_DEFAULT,			//!< Let the system decide whether or not to round window corners
+		DoNotRound			= DWMWCP_DONOTROUND,		//!< Never round window corners
+		Round				= DWMWCP_ROUND,				//!< Round the corners if appropriate
+		RoundSmall			= DWMWCP_ROUNDSMALL,		//!< Round the corners if appropriate, with a small radius
+	};
+
+	/*****************************************************************************
+	*******************************    Backdrop    *******************************
+	*****************************************************************************/
+	
+	//!	@brief	System backdrop types.
+	enum class Backdrop
+	{
+		Auto				= DWMSBT_AUTO,				//!< [Default] Let DWM automatically decide the system-drawn backdrop for this window.
+		None				= DWMSBT_NONE,				//!< Do not draw any system backdrop.
+		MainWindow			= DWMSBT_MAINWINDOW,		//!< Draw the backdrop material effect corresponding to a long-lived window.
+		TabbedWindow		= DWMSBT_TABBEDWINDOW,		//!< Draw the backdrop material effect corresponding to a window with a tabbed title bar.
+		TransientWindow		= DWMSBT_TRANSIENTWINDOW,	//!< Draw the backdrop material effect corresponding to a transient window.
+	};
+
+	/*****************************************************************************
+	***********************    NonClientRenderingPolicy    ***********************
+	*****************************************************************************/
+
+	//!	@brief	Non-client rendering policy values.
+	enum class NonClientRenderingPolicy
+	{
+		UseWindowStyle		= DWMNCRP_USEWINDOWSTYLE,	//!< Enable/disable non-client rendering based on window style
+		Disabled			= DWMNCRP_DISABLED,			//!< Disabled non-client rendering; window style is ignored
+		Enabled				= DWMNCRP_ENABLED,			//!< Enabled non-client rendering; window style is ignored
+	};
+	
 	/*****************************************************************************
 	*********************************    Key    **********************************
 	*****************************************************************************/
@@ -793,12 +836,15 @@ using EzResult = easywin32::Result;
 using EzWindow = easywin32::Window;
 using EzCursor = easywin32::Cursor;
 using EzExStyle = easywin32::ExStyle;
+using EzBackdrop = easywin32::Backdrop;
 using EzKeyAction = easywin32::KeyAction;
 using EzMouseState = easywin32::MouseState;
 using EzMouseAction = easywin32::MouseAction;
 using EzMouseButton = easywin32::MouseButton;
+using EzCornerStyle = easywin32::CornerStyle;
 using EzHitTestResult = easywin32::HitTestResult;
 using EzMouseStateFlags = easywin32::Flags<easywin32::MouseState>;
+using EzNonClientRenderingPolicy = easywin32::NonClientRenderingPolicy;
 template<typename EnumType> using EzFlags = easywin32::Flags<EnumType>;
 namespace EzThreadWindows = easywin32::ThreadWindows;
 
@@ -1005,6 +1051,25 @@ public:
 		::SetCursor(::LoadCursor(NULL, (LPCSTR)cursor));
 	#endif
 	}
+
+public:
+	
+	//!	@brief	Set non-client rendering policy.
+	void setNonClientRenderingPolicy(NonClientRenderingPolicy policy) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy)); }
+	
+	//!	@brief	Set color of caption/text/border (requires Windows11)
+	void setCaptionColor(Color color) { COLORREF val = RGB(color.r, color.g, color.b);	::DwmSetWindowAttribute(m_hWnd, DWMWA_CAPTION_COLOR, &val, sizeof(val)); }
+	void setBorderColor(Color color) { COLORREF val = RGB(color.r, color.g, color.b);	::DwmSetWindowAttribute(m_hWnd, DWMWA_BORDER_COLOR, &val, sizeof(val)); }
+	void setTextColor(Color color) { COLORREF val = RGB(color.r, color.g, color.b);		::DwmSetWindowAttribute(m_hWnd, DWMWA_TEXT_COLOR, &val, sizeof(val)); }
+
+	//! @brief	Allows the window to either use the accent color, or dark, according to the user Color Mode preferences.
+	void enableImmersiveDarkMode(bool enable) { BOOL val = enable; ::DwmSetWindowAttribute(m_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val)); }
+
+	//!	@brief	Set corner style of the window (requires Windows11)
+	void setCornerStyle(CornerStyle style) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &style, sizeof(style)); }
+
+	//!	@brief	Controls the system-drawn backdrop material of a window, including behind the non-client area.
+	void setBackdrop(Backdrop backdrop){ ::DwmSetWindowAttribute(m_hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop, sizeof(backdrop)); }
 
 public:
 
