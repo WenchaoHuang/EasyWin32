@@ -1102,6 +1102,20 @@ public:
 	//!	@brief	Draws a raw RGB bitmap onto the window at the specified position.
 	void drawBitmap(const Color * pixels, int width, int height, int dstX = 0, int dstY = 0);
 
+	void setExStyle(Flags<ExStyle> styleFlags)
+	{
+		::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, static_cast<LONG_PTR>(styleFlags.flags));
+
+		SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE);
+	}
+
+	void setStyle(Flags<Style> styleFlags)
+	{
+		::SetWindowLongPtr(m_hWnd, GWL_STYLE, static_cast<LONG_PTR>(styleFlags.flags));
+
+		SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE);
+	}
+
 	//!	@brief	Sets the window opacity (0-255, requires ExStyle::Layered).
 	void setOpacity(Byte alpha) { ::SetLayeredWindowAttributes(m_hWnd, 0, alpha, LWA_ALPHA); }
 
