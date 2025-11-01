@@ -198,6 +198,44 @@ namespace easywin32
 	//!	@brief	Enables bitwise operators (|, &, ~).
 	EZWIN32_ENABLE_ENUM_FLAGS(Style);
 
+	//!	@brief	Converts a `Flags<Style>` to a readable string.
+	static inline std::string to_string(Flags<Style> styleFlags)
+	{
+		std::string result;
+
+		auto append = [&](const char * name)
+		{
+			if (!result.empty())
+				result += " | ";
+
+			result += name;
+		};
+
+		if (styleFlags.has(Style::Popup))			append("Style::Popup");
+		if (styleFlags.has(Style::Child))			append("Style::Child");
+		if (styleFlags.has(Style::Minimize))		append("Style::Minimize");
+		if (styleFlags.has(Style::Visible))			append("Style::Visible");
+		if (styleFlags.has(Style::Disabled))		append("Style::Disabled");
+		if (styleFlags.has(Style::ClipSiblings))	append("Style::ClipSiblings");
+		if (styleFlags.has(Style::ClipChildren))	append("Style::ClipChildren");
+		if (styleFlags.has(Style::Maximize))		append("Style::Maximize");
+		if (styleFlags.has(Style::Border))			append("Style::Border");
+		if (styleFlags.has(Style::DialogFrame))		append("Style::DialogFrame");
+		if (styleFlags.has(Style::VScroll))			append("Style::VScroll");
+		if (styleFlags.has(Style::HScroll))			append("Style::HScroll");
+		if (styleFlags.has(Style::SysMenu))			append("Style::SysMenu");
+		if (styleFlags.has(Style::ThickFrame))		append("Style::ThickFrame");
+		if (styleFlags.has(Style::Group))			append("Style::Group");
+		if (styleFlags.has(Style::TabStop))			append("Style::TabStop");
+		if (styleFlags.has(Style::MinimizeBox))		append("Style::MinimizeBox");
+		if (styleFlags.has(Style::MaximizeBox))		append("Style::MaximizeBox");
+		if (styleFlags.has(Style::Caption))			append("Style::Caption");
+		if (styleFlags.has(Style::MaximizeBox))		append("Style::MaximizeBox");
+		if (result.empty())							append("Style::Overlapped");
+
+		return result;
+	}
+
 	/*****************************************************************************
 	*******************************    ExStyle    ********************************
 	*****************************************************************************/
@@ -239,6 +277,51 @@ namespace easywin32
 
 	//!	@brief	Enables bitwise operators (|, &, ~).
 	EZWIN32_ENABLE_ENUM_FLAGS(ExStyle);
+
+	//!	@brief	Converts a `Flags<ExStyle>` to a readable string.
+	static inline std::string to_string(Flags<ExStyle> styleFlags)
+	{
+		std::string result;
+
+		auto append = [&](const char * name)
+		{
+			if (!result.empty())
+				result += " | ";
+
+			result += name;
+		};
+
+		if (styleFlags.has(ExStyle::AcceptFiles))			append("ExStyle::AcceptFiles");
+		if (styleFlags.has(ExStyle::AppWindow))				append("ExStyle::AppWindow");
+		if (styleFlags.has(ExStyle::ClientEdge))			append("ExStyle::ClientEdge");
+		if (styleFlags.has(ExStyle::Composited))			append("ExStyle::Composited");
+		if (styleFlags.has(ExStyle::ContextHelp))			append("ExStyle::ContextHelp");
+		if (styleFlags.has(ExStyle::ControlParent))			append("ExStyle::ControlParent");
+		if (styleFlags.has(ExStyle::DlgModalFrame))			append("ExStyle::DlgModalFrame");
+		if (styleFlags.has(ExStyle::Layered))				append("ExStyle::Layered");
+		if (styleFlags.has(ExStyle::LayoutRtl))				append("ExStyle::LayoutRtl");
+		if (styleFlags.has(ExStyle::Left))					append("ExStyle::Left");
+		if (styleFlags.has(ExStyle::LeftScrollBar))			append("ExStyle::LeftScrollBar");
+		if (styleFlags.has(ExStyle::LtrReading))			append("ExStyle::LtrReading");
+		if (styleFlags.has(ExStyle::MdiChild))				append("ExStyle::MdiChild");
+		if (styleFlags.has(ExStyle::NoActivate))			append("ExStyle::NoActivate");
+		if (styleFlags.has(ExStyle::NoInheritLayout))		append("ExStyle::NoInheritLayout");
+		if (styleFlags.has(ExStyle::NoParentNotify))		append("ExStyle::NoParentNotify");
+		if (styleFlags.has(ExStyle::NoRedirectionBitmap))	append("ExStyle::NoRedirectionBitmap");
+		if (styleFlags.has(ExStyle::OverlappedWindow))		append("ExStyle::OverlappedWindow");
+		if (styleFlags.has(ExStyle::PaletteWindow))			append("ExStyle::PaletteWindow");
+		if (styleFlags.has(ExStyle::Right))					append("ExStyle::Right");
+		if (styleFlags.has(ExStyle::RightScrollBar))		append("ExStyle::RightScrollBar");
+		if (styleFlags.has(ExStyle::RtlReading))			append("ExStyle::RtlReading");
+		if (styleFlags.has(ExStyle::StaticEdge))			append("ExStyle::StaticEdge");
+		if (styleFlags.has(ExStyle::ToolWindow))			append("ExStyle::Right");
+		if (styleFlags.has(ExStyle::TopMost))				append("ExStyle::TopMost");
+		if (styleFlags.has(ExStyle::Transparent))			append("ExStyle::Transparent");
+		if (styleFlags.has(ExStyle::WindowEdge))			append("ExStyle::WindowEdge");
+		if (result.empty())									append("ExStyle::None");
+
+		return result;
+	}
 
 	/*****************************************************************************
 	******************************    CornerStyle    *****************************
@@ -953,6 +1036,12 @@ public:
 
 	//!	@brief	Whether the windows is the foreground (active) window.
 	bool isForeground() const { return ::GetForegroundWindow() == m_hWnd; }
+
+	//!	@brief	Gets styles of the window.
+	Flags<Style> getStyle() const { return (DWORD)::GetWindowLongPtr(m_hWnd, GWL_STYLE); }
+
+	//!	@brief	Gets ex-styles of the window.
+	Flags<ExStyle> getExStyle() const { return (DWORD)::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE); }
 
 	//!	@brief	Retrieves the position of the client area (left-top corner).
 	Point getClientPos() const { Point pt = {};		::ClientToScreen(m_hWnd, &pt);		return pt; }
