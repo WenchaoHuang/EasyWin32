@@ -1134,8 +1134,11 @@ public:
 
 public:	// Layered window section
 
+	//!	@brief	Gets the window opacity.
+	Byte getOpacity() const { return m_opacity; }
+
 	//!	@brief	Sets the window opacity (0-255, requires ExStyle::Layered).
-	void setOpacity(Byte alpha) { ::SetLayeredWindowAttributes(m_hWnd, 0, alpha, LWA_ALPHA); }
+	void setOpacity(Byte opacity) { ::SetLayeredWindowAttributes(m_hWnd, 0, m_opacity = opacity, LWA_ALPHA); }
 
 	//!	@brief		Sets a color key for the layered window to enable per-pixel transparency (requires ExStyle::Layered).
 	//! @details	All pixels exactly matching the given color will be rendered as transparent, allowing content behind the window to show through.
@@ -1235,8 +1238,10 @@ private:
 	HWND		m_hWnd = nullptr;
 	Size		m_minTrackSize = { 120, 31 };
 	Size		m_maxTrackSize = { LONG_MAX, LONG_MAX };
-	bool		m_skipCaption = false;
 	bool		m_enableBlurBeind = false;
+	bool		m_skipCaption = false;
+	Byte		m_opacity = 255;	// 0=transparent, 255=opaque
+	
 };
 
 /*********************************************************************************
@@ -1504,6 +1509,12 @@ template<bool SkipCaption> void easywin32::Window::internalOpen(string_type titl
 		m_hWnd = ::CreateWindowEx(dwExStyle, s_win32Class.lpszClassName, title.c_str(), dwStyle,
 								  x, y, w, h, NULL, NULL, s_win32Class.hInstance,
 								  this /* Additional application data */);
+
+		//! Keep in sync with the `m_opacity`.
+		if (dwExStyle | WS_EX_LAYERED)
+		{
+			this->setOpacity(m_opacity);
+		}
 	}
 }
 
@@ -1714,6 +1725,12 @@ void easywin32::Window::setExStyle(Flags<ExStyle> styleFlags)
 	::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, static_cast<LONG_PTR>(styleFlags.mask));
 
 	::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE);
+
+	//! Keep in sync with the `m_opacity`.
+	if (styleFlags.has(ExStyle::Layered))
+	{
+		this->setOpacity(m_opacity);
+	}
 }
 
 
