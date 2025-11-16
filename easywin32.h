@@ -1144,18 +1144,40 @@ public:	// Layered window section
 	//! @details	All pixels exactly matching the given color will be rendered as transparent, allowing content behind the window to show through.
 	void setColorKey(ColorRGB color) { ::SetLayeredWindowAttributes(m_hWnd, RGB(color.r, color.g, color.b), 0, LWA_COLORKEY); }
 
-public: // DWM section
+public: // DWM section (get)
+
+	//!	@brief	Get non-client rendering policy.
+	NonClientRenderingPolicy getNonClientRenderingPolicy() const { auto val = NonClientRenderingPolicy::UseWindowStyle;	::DwmGetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &val, sizeof(val));	return val; }
+
+	//!	@brief	Set color of caption/text/border (requires Windows11)
+	ColorRGB getCaptionColor() const { COLORREF val = RGB(0, 0, 0);	::DwmGetWindowAttribute(m_hWnd, DWMWA_CAPTION_COLOR, &val, sizeof(val));	return ColorRGB{ GetRValue(val), GetGValue(val), GetBValue(val) }; }
+	ColorRGB getBorderColor() const { COLORREF val = RGB(0, 0, 0);	::DwmGetWindowAttribute(m_hWnd, DWMWA_BORDER_COLOR, &val, sizeof(val));		return ColorRGB{ GetRValue(val), GetGValue(val), GetBValue(val) }; }
+	ColorRGB getTextColor() const { COLORREF val = RGB(0, 0, 0);	::DwmGetWindowAttribute(m_hWnd, DWMWA_TEXT_COLOR, &val, sizeof(val));		return ColorRGB{ GetRValue(val), GetGValue(val), GetBValue(val) }; }
+	
+	//!	@brief	Get the corner style of the window.
+	CornerStyle getCornerStyle() const { auto val = CornerStyle::Default;	::DwmGetWindowAttribute(m_hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &val, sizeof(val));  return val; }
+
+	//!	@brief	Get the backdrop of the window
+	Backdrop getBackdrop() const { auto val = Backdrop::Auto;	::DwmGetWindowAttribute(m_hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &val, sizeof(val));	 return val; }
+	
+	//!	@brief	Checks if the dark mode is enabled.
+	bool immersiveDarkModeEnabled() const { BOOL val = FALSE;	::DwmGetWindowAttribute(m_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val));	 return val; }
+
+	//!	@brief	Checks if the DWM "blur-behind" effect is enabled.
+	bool blurBeindWindowEnabled() const { return m_enableBlurBeind; }
+	
+public: // DWM section (set)
 	
 	//!	@brief	Set non-client rendering policy.
 	void setNonClientRenderingPolicy(NonClientRenderingPolicy policy) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy)); }
-	
+
+	//! @brief	Allows the window to either use the accent color, or dark, according to the user ColorRGB Mode preferences.
+	void enableImmersiveDarkMode(bool enable) { BOOL val = enable;	::DwmSetWindowAttribute(m_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val)); }
+
 	//!	@brief	Set color of caption/text/border (requires Windows11)
 	void setCaptionColor(ColorRGB color) { COLORREF val = RGB(color.r, color.g, color.b);	::DwmSetWindowAttribute(m_hWnd, DWMWA_CAPTION_COLOR, &val, sizeof(val)); }
 	void setBorderColor(ColorRGB color) { COLORREF val = RGB(color.r, color.g, color.b);	::DwmSetWindowAttribute(m_hWnd, DWMWA_BORDER_COLOR, &val, sizeof(val)); }
 	void setTextColor(ColorRGB color) { COLORREF val = RGB(color.r, color.g, color.b);		::DwmSetWindowAttribute(m_hWnd, DWMWA_TEXT_COLOR, &val, sizeof(val)); }
-
-	//! @brief	Allows the window to either use the accent color, or dark, according to the user ColorRGB Mode preferences.
-	void enableImmersiveDarkMode(bool enable) { BOOL val = enable; ::DwmSetWindowAttribute(m_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val)); }
 
 	//!	@brief	Set corner style of the window (requires Windows11)
 	void setCornerStyle(CornerStyle style) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &style, sizeof(style)); }
@@ -1165,9 +1187,6 @@ public: // DWM section
 
 	//!	@brief	Enables or disables the DWM "blur-behind" effect for the window (aka. alpha-composition).
 	void enableBlurBeindWindow(bool enable);
-
-	//!	@brief	Checks if the DWM "blur-behind" effect is enabled.
-	bool blurBeindWindowEnabled() const { return m_enableBlurBeind; }
 
 public:
 
@@ -1235,13 +1254,12 @@ public:
 
 private:
 
-	HWND		m_hWnd = nullptr;
-	Size		m_minTrackSize = { 120, 31 };
-	Size		m_maxTrackSize = { LONG_MAX, LONG_MAX };
-	bool		m_enableBlurBeind = false;
-	bool		m_skipCaption = false;
-	Byte		m_opacity = 255;	// 0=transparent, 255=opaque
-	
+	HWND	m_hWnd = nullptr;
+	Size	m_minTrackSize = { 120, 31 };
+	Size	m_maxTrackSize = { LONG_MAX, LONG_MAX };
+	bool	m_enableBlurBeind = false;
+	bool	m_skipCaption = false;
+	Byte	m_opacity = 255;	// 0 = transparent, 255 = opaque
 };
 
 /*********************************************************************************
