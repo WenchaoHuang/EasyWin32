@@ -1168,12 +1168,15 @@ public: // DWM section (get)
 	bool blurBeindWindowEnabled() const { return m_enableBlurBeind; }
 	
 public: // DWM section (set)
-	
-	//!	@brief	Set non-client rendering policy.
-	void setNonClientRenderingPolicy(NonClientRenderingPolicy policy) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy)); }
 
 	//! @brief	Allows the window to either use the accent color, or dark, according to the user ColorRGB Mode preferences.
 	void enableImmersiveDarkMode(bool enable) { BOOL val = enable;	::DwmSetWindowAttribute(m_hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &val, sizeof(val)); }
+
+	//!	@brief	Set non-client rendering policy.
+	void setNonClientRenderingPolicy(NonClientRenderingPolicy policy) { ::DwmSetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy)); }
+	
+	//!	@brief	Extends the window frame into the client area.
+	void extendFrameIntoClientArea(int left, int top, int right, int bottom) { MARGINS margins = { left, right, top, bottom };	::DwmExtendFrameIntoClientArea(m_hWnd, &margins); }
 
 	//!	@brief	Set color of caption/text/border (requires Windows11)
 	void setCaptionColor(ColorRGB color) { COLORREF val = RGB(color.r, color.g, color.b);	::DwmSetWindowAttribute(m_hWnd, DWMWA_CAPTION_COLOR, &val, sizeof(val)); }
