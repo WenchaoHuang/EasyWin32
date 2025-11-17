@@ -36,7 +36,7 @@ extern void keyboardEventTest(EzWindow & window);
 int main()
 {
 	EzWindow window;
-	window.open("EasyWin32-Test", EzRect{ 100, 100, 900, 700 }, EzStyle::OverlappedWindow, EzExStyle::AcceptFiles);
+	window.open("EasyWin32-Test", 800, 600, EzStyle::OverlappedWindow, EzExStyle::AcceptFiles);
 	window.centerToScreen();
 	window.show();
 

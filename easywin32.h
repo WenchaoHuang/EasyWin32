@@ -958,20 +958,21 @@ public:
 	 *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
 	 *				If the window is already open (m_hWnd is valid), this method does nothing. Updates m_styleFlags and m_bounds accordingly.
 	 *	@param[in]	title - The title of the window.
-	 *	@param[in]	size - The size of the window (width and height in pixels) as a Size structure (cx, cy).
+	 *	@param[in]	with - The with of the window in pixels.
+	 *	@param[in]	height - The height of the window in pixels.
 	 *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`). Defaults to `Style::OverlappedWindow`.
 	 *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., `ExStyle::Layered`, `ExStyle::TopMost`). Defaults to 0 (no extended styles).
 	 *	@note		The window is created at default screen coordinates (CW_USEDEFAULT). Use setPos to specify a custom position.
 	 */
-	void open(string_type title, Size size, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
+	void open(string_type title, int width, int height, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0);
 
 	//!	@brief		Opens a new window with default title and specified size and styles.
-	void open(Size size, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0)
+	void open(int width, int height, Flags<Style> styleFlags = Style::OverlappedWindow, Flags<ExStyle> exStyleFlags = 0)
 	{
 	#ifdef UNICODE
-		this->open(L"Easy-Win32", size, styleFlags, exStyleFlags);
+		this->open(L"Easy-Win32", width, height, styleFlags, exStyleFlags);
 	#else
-		this->open("Easy-Win32", size, styleFlags, exStyleFlags);
+		this->open("Easy-Win32", width, height, styleFlags, exStyleFlags);
 	#endif
 	}
 
@@ -1581,16 +1582,17 @@ void easywin32::Window::open(string_type title, Rect bounds, Flags<Style> styleF
  *				Adjusts the window's bounding rectangle to account for non-client areas (e.g., borders, title bar) based on the style flags.
  *				If the window is already open (m_hWnd is valid), this method does nothing. Updates m_styleFlags and m_bounds accordingly.
  *	@param[in]	title - The title of the window.
- *	@param[in]	size - The size of the window (width and height in pixels) as a Size structure (cx, cy).
+ *	@param[in]	with - The with of the window in pixels.
+ *	@param[in]	height - The height of the window in pixels.
  *	@param[in]	styleFlags - The combination of window styles (e.g., `Style::OverlappedWindow`). Defaults to `Style::OverlappedWindow`.
  *	@param[in]	exStyleFlags - The combination of extended window styles (e.g., `ExStyle::Layered`, `ExStyle::TopMost`). Defaults to 0 (no extended styles).
  *	@note		The window is created at default screen coordinates (CW_USEDEFAULT). Use setPos to specify a custom position.
  */
-void easywin32::Window::open(string_type title, Size size, Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
+void easywin32::Window::open(string_type title, int width, int height, Flags<Style> styleFlags, Flags<ExStyle> exStyleFlags)
 {
 	if (::IsWindow(m_hWnd) != 0)	return;
 
-	RECT bounds = { 0, 0, size.cx, size.cy };
+	RECT bounds = { 0, 0, width, height };
 
 	DWORD dwStyle = Window::toNativeStyle(styleFlags);
 

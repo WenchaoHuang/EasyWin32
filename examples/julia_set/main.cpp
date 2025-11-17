@@ -84,7 +84,7 @@ int main()
 	std::vector<EzColorRGB>		pixels(num_pixels);
 
 	EzWindow window;
-	window.open("Julia Set", EzSize{ width, height });
+	window.open("Julia Set", width, height);
 	window.centerToScreen();
 	window.show();
 
