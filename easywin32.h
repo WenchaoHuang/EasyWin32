@@ -1020,10 +1020,10 @@ public:
 	Flags<ExStyle> getExStyleFlags() const { return (DWORD)::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE); }
 
 	//!	@brief	Retrieves the position of the client area (left-top corner).
-	Point getClientPos() const { Point pt = {};		::ClientToScreen(m_hWnd, &pt);		return pt; }
+	Point getClientPos() const { Point pt = { 0, 0 };	::ClientToScreen(m_hWnd, &pt);		return pt; }
 
 	//!	@brief	Gets the mouse position in client coordinates.
-	Point getMousePos() const { Point pt = {};		::GetCursorPos(&pt);	::ScreenToClient(m_hWnd, &pt);	return pt; }
+	Point getMousePos() const { Point pt = {};		::GetCursorPos(&pt);	::ScreenToClient(m_hWnd, &pt);		return pt; }
 
 	//!	@brief	Returns the size of the client area (width and height) of the window in pixels.
 	Size getClientExtent() const { Rect rect = {};	::GetClientRect(m_hWnd, &rect);		return Size{ rect.right, rect.bottom }; }
@@ -1764,16 +1764,14 @@ void easywin32::Window::setPos(int left, int top)
 
 	if ((pos.x != left) || (pos.y != top))
 	{
-		auto extent = this->getClientExtent();
-
-		Rect rect = { left, top, left + extent.cx, top + extent.cy };
+		Rect rect = { left, top, 0, 0 };	// Ignores the right and bottom parameters
 
 		if (m_skipCaption)
 			Window::adjustWindowRect<true>(rect, (DWORD)GetWindowLongPtr(m_hWnd, GWL_STYLE), (DWORD)GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 		else
 			Window::adjustWindowRect<false>(rect, (DWORD)GetWindowLongPtr(m_hWnd, GWL_STYLE), (DWORD)GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
 
-		::SetWindowPos(m_hWnd, NULL, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE);
+		::SetWindowPos(m_hWnd, NULL, rect.left, rect.top, 0, 0, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOREDRAW);
 	}
 }
 
@@ -1781,11 +1779,13 @@ void easywin32::Window::setPos(int left, int top)
 //!	@brief	Set position of the window.
 void easywin32::Window::setPos(int left, int top, int right, int bottom)
 {
-	auto pos = this->getClientPos();
-
 	auto extent = this->getClientExtent();
 
-	if ((pos.x != left) || (pos.y != top) || (right - left != extent.cx) || (bottom - top != extent.cy))
+	if ((right - left == extent.cx) && (bottom - top == extent.cy))
+	{
+		this->setPos(left, top);
+	}
+	else
 	{
 		Rect rect = { left, top, right, bottom };
 
